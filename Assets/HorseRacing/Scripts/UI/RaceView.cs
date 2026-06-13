@@ -25,6 +25,7 @@ namespace HorseRacing.UI
         private readonly List<RectTransform> _markers = new List<RectTransform>();
         private TextMeshProUGUI _eventText;
         private TextMeshProUGUI _rankText;
+        private TextMeshProUGUI _trackLabel;
         private Image _finishLine;
         private RectTransform _finishLineRT;
 
@@ -140,6 +141,14 @@ namespace HorseRacing.UI
             rrt.anchorMax = new Vector2(1f, 1f);
             rrt.offsetMin = new Vector2(0, 0);
             rrt.offsetMax = new Vector2(-12, -8);
+
+            // 賽道類型標籤（左上角）
+            _trackLabel = UIFactory.Text(transform, "", 24, TextAlignmentOptions.TopLeft, UIFactory.TextMain);
+            var trt = _trackLabel.rectTransform;
+            trt.anchorMin = new Vector2(0f, 0.90f);
+            trt.anchorMax = new Vector2(0.35f, 1f);
+            trt.offsetMin = new Vector2(16, 0);
+            trt.offsetMax = new Vector2(0, -8);
         }
 
         public void Play(GameManager gm)
@@ -147,7 +156,19 @@ namespace HorseRacing.UI
             Build();
             if (_playing) return;
             _bg.sprite = GetTrackSprite(gm.Round.Track);
+            _trackLabel.text = "賽道：" + GetTrackDisplayName(gm.Round.Track);
             StartCoroutine(Run(gm));
+        }
+
+        private static string GetTrackDisplayName(TrackType t)
+        {
+            switch (t)
+            {
+                case TrackType.Grass: return "草地";
+                case TrackType.Mud: return "泥地";
+                case TrackType.Snow: return "雪地";
+            }
+            return t.ToString();
         }
 
         private IEnumerator Run(GameManager gm)

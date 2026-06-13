@@ -444,7 +444,8 @@ namespace HorseRacing.UI
                 var row = UIFactory.Rect(_shopCardsContainer.transform, "Card_" + card.cardName, UIFactory.Card).gameObject;
                 UIFactory.LE(row, minH: 76, prefH: 76);
                 UIFactory.HLayout(row, 14, 14, TextAnchor.MiddleLeft, false, true, false, true);
-                var info = UIFactory.Text(row.transform, $"{card.cardName}　${card.price}\n{card.description}（防禦率 {card.defendChance:P0}）",
+                string targetName = card.targetEvent != null ? card.targetEvent.displayName : "未知";
+                var info = UIFactory.Text(row.transform, $"{card.cardName}　${card.price}　防禦對象：{targetName}\n防禦率 {card.defendChance:P0}",
                     20, TextAlignmentOptions.Left);
                 UIFactory.LE(info.gameObject, flexW: 1);
                 var captured = card;
@@ -484,7 +485,7 @@ namespace HorseRacing.UI
                 ? $"<color=#3FA463>盈利 +{profit}</color>"
                 : $"<color=#C74747>虧損 {profit}</color>";
 
-            string winStr = _gm.GameWon ? "🏆 恭喜獲勝！" : "💸 破產了...";
+            string winStr = _gm.GameWon ? "🏆 恭喜獲勝！" : "😢 遊戲落敗";
             _gameOverText.text = $"{winStr}\n\n{_gm.GameOverReason}\n\n最終資金：{money}\n{profitStr}\n共 {_gm.RoundNumber} 回合";
         }
 

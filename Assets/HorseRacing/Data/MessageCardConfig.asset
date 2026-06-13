@@ -29,3 +29,4 @@ MonoBehaviour:
     description: "\u770B\u8D77\u4F86\u5F88 Chill"
   - bonus: 7
     description: "\u55E8\u5F97\u98DB\u8D77"
+  fallbackDescription: "\u72C0\u614B\u4E0D\u660E"

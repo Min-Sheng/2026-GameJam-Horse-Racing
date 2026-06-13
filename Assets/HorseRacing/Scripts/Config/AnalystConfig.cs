@@ -7,11 +7,15 @@ namespace HorseRacing
     public class AnalystConfig : ScriptableObject
     {
         [Header("初級分析師（M%）")]
+        [Tooltip("初級分析師情報價格")]
         public long juniorPrice = 100;
+        [Tooltip("初級正確率（必須小於資深正確率 seniorAccuracy）")]
         [Range(0f, 1f)] public float juniorAccuracy = 0.55f;
 
         [Header("資深分析師（N% > M%）")]
+        [Tooltip("資深分析師情報價格（應高於初級）")]
         public long seniorPrice = 300;
+        [Tooltip("資深正確率必須大於初級正確率（seniorAccuracy > juniorAccuracy）")]
         [Range(0f, 1f)] public float seniorAccuracy = 0.85f;
 
         [Header("情報內容")]

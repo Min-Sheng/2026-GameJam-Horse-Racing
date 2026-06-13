@@ -1,4 +1,9 @@
 ﻿<Solution>
+  <Project Path="MCPForUnity.Runtime.csproj" />
+  <Project Path="HorseRacing.Core.csproj" />
+  <Project Path="MCPForUnity.Editor.csproj" />
+  <Project Path="HorseRacing.Tests.csproj" />
+  <Project Path="HorseRacing.UI.csproj" />
   <Project Path="Assembly-CSharp-Editor.csproj" />
   <Project Path="Assembly-CSharp.csproj" />
 </Solution>

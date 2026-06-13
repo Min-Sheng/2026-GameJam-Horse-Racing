@@ -20,5 +20,8 @@ namespace HorseRacing
         [Header("遊戲規則")]
         [Tooltip("總回合數；0 = 無限制")]
         public int totalRounds = 5;
+
+        [Tooltip("每場比賽的階段數（PRD §10：每階段獨立判定事件）")]
+        public int stageCount = 3;
     }
 }
