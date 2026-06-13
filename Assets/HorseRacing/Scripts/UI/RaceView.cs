@@ -231,7 +231,8 @@ namespace HorseRacing.UI
             for (int i = 0; i < 8; i++)
                 _markers[i].anchoredPosition = new Vector2(basePx, laneY[i]);
 
-            // === 主賽跑迴圈 ===
+            // === 階段一：背景捲動，馬匹相對跑 ===
+            // 背景在領先馬到達 100% 時停止捲動
             while (elapsed < totalDuration)
             {
                 elapsed += Time.deltaTime;
@@ -244,11 +245,12 @@ namespace HorseRacing.UI
                     if (p > leaderProgress) leaderProgress = p;
                 }
 
-                // 背景 sliding window：依領先馬進度平移
-                float scrollX = leaderProgress * maxScroll;
+                // 背景 sliding window：依領先馬進度平移（到達後停止）
+                float scrollProgress = Mathf.Clamp01(leaderProgress);
+                float scrollX = scrollProgress * maxScroll;
                 _bgRT.anchoredPosition = new Vector2(-scrollX, 0);
 
-                // 終點線跟隨背景移動（它的世界 X = finishLineLocalX - scrollX）
+                // 終點線跟隨背景移動
                 float finishScreenX = finishLineLocalX - scrollX;
                 _finishLineRT.anchoredPosition = new Vector2(finishScreenX, 0);
 
@@ -258,7 +260,6 @@ namespace HorseRacing.UI
                     float p = Mathf.Clamp01(elapsed * horseRate[i]);
                     float diff = p - leaderProgress; // ≤ 0（落後）
                     float x = basePx + diff * width * HorseSpreadX / 0.05f;
-                    // 限制不超出畫面左右
                     x = Mathf.Clamp(x, horseW * 0.5f, width - horseW * 0.5f);
 
                     float bob = p < 1f ? Mathf.Sin(elapsed * 11f + i * 0.8f) * 3.5f : 0f;
@@ -287,6 +288,57 @@ namespace HorseRacing.UI
                     shownStage = stageByTime;
                     if (!string.IsNullOrEmpty(stageMsg[shownStage]))
                         _eventText.text = "賽事事件：" + stageMsg[shownStage];
+                }
+
+                yield return null;
+            }
+
+            // === 階段二：背景停止，所有馬跑過終點線 ===
+            // 背景固定在最右端
+            _bgRT.anchoredPosition = new Vector2(-maxScroll, 0);
+            float finishScreenXFinal = finishLineLocalX - maxScroll;
+            _finishLineRT.anchoredPosition = new Vector2(finishScreenXFinal, 0);
+
+            // 所有馬向右移動直到全部超過終點線
+            float finishPhaseTime = 0f;
+            float finishMaxTime = 3f; // 最多等 3 秒
+            float rightEdge = width + horseW; // 跑出畫面右邊
+            bool allPassed = false;
+
+            while (!allPassed && finishPhaseTime < finishMaxTime)
+            {
+                finishPhaseTime += Time.deltaTime;
+                allPassed = true;
+
+                for (int i = 0; i < 8; i++)
+                {
+                    var pos = _markers[i].anchoredPosition;
+
+                    // 每匹馬以自己的速率向右跑
+                    float speed = horseRate[i] * width * 1.2f;
+                    float newX = pos.x + speed * Time.deltaTime;
+
+                    float bob = Mathf.Sin((elapsed + finishPhaseTime) * 11f + i * 0.8f) * 3.5f;
+                    // 到達終點線後停止彈跳
+                    if (newX >= finishScreenXFinal + horseW)
+                        bob = 0f;
+
+                    _markers[i].anchoredPosition = new Vector2(newX, laneY[i] + bob);
+
+                    // 還沒跑過終點線的話繼續
+                    if (newX < finishScreenXFinal + horseW * 0.5f)
+                        allPassed = false;
+
+                    // 記錄過線
+                    if (newX >= finishScreenXFinal && !hasFinished.Contains(i + 1))
+                    {
+                        hasFinished.Add(i + 1);
+                        finishedOrder.Add(i + 1);
+                        var sb2 = new System.Text.StringBuilder();
+                        for (int r = 0; r < finishedOrder.Count; r++)
+                            sb2.Append($"第{r + 1}名: Horse {finishedOrder[r]}\n");
+                        _rankText.text = sb2.ToString();
+                    }
                 }
 
                 yield return null;
