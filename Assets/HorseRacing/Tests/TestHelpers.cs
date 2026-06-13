@@ -116,5 +116,42 @@ namespace HorseRacing.Tests
                 list.Add(new Horse { Id = i + 1, BaseSpeed = baseSpeed, HiddenBonus = hiddenBonuses[i] });
             return list;
         }
+
+        public static AnalystConfig Analyst(float juniorAccuracy = 0.55f, float seniorAccuracy = 0.85f, int statementsPerReport = 3)
+        {
+            var c = ScriptableObject.CreateInstance<AnalystConfig>();
+            c.juniorAccuracy = juniorAccuracy;
+            c.seniorAccuracy = seniorAccuracy;
+            c.statementsPerReport = statementsPerReport;
+            c.juniorPrice = 100;
+            c.seniorPrice = 300;
+            return c;
+        }
+
+        public static MessageCardConfig MessageCards()
+        {
+            var c = ScriptableObject.CreateInstance<MessageCardConfig>();
+            for (int i = 0; i < 8; i++)
+                c.entries.Add(new MessageCardConfig.Entry { bonus = i, description = "B" + i });
+            return c;
+        }
+
+        /// <summary>建立完整的 GameConfigDatabase，可直接賦值給 GameManager.config。</summary>
+        public static GameConfigDatabase FullConfig(int totalRounds = 5, long startingMoney = 3000, long minBet = 50)
+        {
+            var db = ScriptableObject.CreateInstance<GameConfigDatabase>();
+            db.game = Game(8, 30);
+            db.game.startingMoney = startingMoney;
+            db.game.minBetAmount = minBet;
+            db.game.totalRounds = totalRounds;
+            db.odds = Odds();
+            db.track = Track();
+            db.betting = Betting();
+            db.events = Events(); // empty event database (no random events)
+            db.analyst = Analyst();
+            db.messageCards = MessageCards();
+            db.shop = Shop(3, Card("TestCard", Event("TestEv", 1f, -2), 0.8f, 100));
+            return db;
+        }
     }
 }

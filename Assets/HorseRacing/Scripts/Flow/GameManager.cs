@@ -148,7 +148,7 @@ namespace HorseRacing
             Round.TrackRevealed = true;
             Phase = GamePhase.Racing;
             Round.Result = RaceSimulationSystem.Simulate(
-                Round.Horses, Round.Track, config.track, config.events, _rng, Player.ProtectionCards);
+                Round.Horses, Round.Track, config.track, config.events, _rng, Player.ProtectionCards, config.game);
             Notice($"公布賽道：{config.track.GetTrackName(Round.Track)}");
             Notify();
         }

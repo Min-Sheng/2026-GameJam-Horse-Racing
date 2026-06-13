@@ -3,13 +3,14 @@ using System.Collections.Generic;
 namespace HorseRacing
 {
     /// <summary>
-    /// 賽事模擬系統（PRD §9）。套用賽道修正後，分三階段判定事件，
-    /// 以 FinalSpeed = Base + Hidden + Track + Σ(Stage1..3 事件) 決定名次；
+    /// 賽事模擬系統（PRD §9）。套用賽道修正後，依設定的階段數判定事件，
+    /// 以 FinalSpeed = Base + Hidden + Track + Σ(Stage1..N 事件) 決定名次；
     /// 同速時馬號較小者勝出（Tie Break）。
     /// </summary>
     public static class RaceSimulationSystem
     {
-        public const int StageCount = 3;
+        /// <summary>預設階段數（當未提供 GameConfig 時的後備值）。</summary>
+        public const int DefaultStageCount = 3;
 
         public static RaceResult Simulate(
             List<Horse> horses,
@@ -17,16 +18,19 @@ namespace HorseRacing
             TrackConfig trackCfg,
             EventDatabase events,
             IRandom rng,
-            List<ProtectionCardDefinition> protections)
+            List<ProtectionCardDefinition> protections,
+            GameConfig gameCfg = null)
         {
+            int stageCount = gameCfg != null ? gameCfg.stageCount : DefaultStageCount;
+
             // 重置並套用賽道修正
             for (int i = 0; i < horses.Count; i++) horses[i].ResetForRace();
             TrackSystem.ApplyTrackModifiers(horses, track, trackCfg);
 
             var result = new RaceResult { Track = track };
 
-            // 三階段事件
-            for (int stage = 1; stage <= StageCount; stage++)
+            // N 階段事件
+            for (int stage = 1; stage <= stageCount; stage++)
             {
                 var logs = EventSystem.ResolveStage(stage, horses, events, rng, protections);
                 result.Events.AddRange(logs);

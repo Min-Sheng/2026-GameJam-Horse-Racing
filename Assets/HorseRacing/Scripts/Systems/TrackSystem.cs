@@ -10,8 +10,8 @@ namespace HorseRacing
         {
             if (cfg.tracks != null && cfg.tracks.Count > 0)
                 return cfg.tracks[rng.Next(cfg.tracks.Count)].type;
-            // 後備：三種賽道
-            return (TrackType)rng.Next(3);
+            // 後備：預設使用 Grass（避免 hard-code 賽道數量）
+            return TrackType.Grass;
         }
 
         /// <summary>將賽道修正寫入每匹馬的 TrackModifier。</summary>
