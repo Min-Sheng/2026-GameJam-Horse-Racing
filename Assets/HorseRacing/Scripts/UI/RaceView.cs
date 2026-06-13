@@ -299,10 +299,25 @@ namespace HorseRacing.UI
             float finishScreenXFinal = finishLineLocalX - maxScroll;
             _finishLineRT.anchoredPosition = new Vector2(finishScreenXFinal, 0);
 
+            // 計算每匹馬在階段一結束時的螢幕速度（px/s）
+            // 階段一中：馬的 screenX = basePx + (p - leaderP) * spreadFactor
+            // 背景停止後馬的移動 = 自身進度增加 * spreadFactor + 背景不再抵消的速度
+            // 簡化：用階段一最後一幀的 scrollSpeed + 相對速度來計算
+            float scrollSpeedPxPerSec = maxScroll / RaceDuration; // 背景每秒捲動的像素
+            var horseScreenSpeed = new float[8];
+            for (int i = 0; i < 8; i++)
+            {
+                // 每匹馬的「世界速度」= horseRate * totalTrackLength
+                // 階段一中馬在螢幕上的速度 ≈ (自身速度 - 背景速度) 的螢幕投影
+                // 背景停止後，馬的螢幕速度 = 自身世界速度 在螢幕上的完整表現
+                // 為了無縫銜接，使用：背景捲動速度(每秒) × (該馬速率 / 領先馬速率)
+                float leaderRate = horseRate[result.RankToHorseId[0] - 1];
+                horseScreenSpeed[i] = scrollSpeedPxPerSec * (horseRate[i] / leaderRate);
+            }
+
             // 所有馬向右移動直到全部超過終點線
             float finishPhaseTime = 0f;
-            float finishMaxTime = 3f; // 最多等 3 秒
-            float rightEdge = width + horseW; // 跑出畫面右邊
+            float finishMaxTime = 4f;
             bool allPassed = false;
 
             while (!allPassed && finishPhaseTime < finishMaxTime)
@@ -314,22 +329,18 @@ namespace HorseRacing.UI
                 {
                     var pos = _markers[i].anchoredPosition;
 
-                    // 每匹馬以自己的速率向右跑
-                    float speed = horseRate[i] * width * 1.2f;
-                    float newX = pos.x + speed * Time.deltaTime;
+                    // 使用與階段一末尾一致的速度
+                    float newX = pos.x + horseScreenSpeed[i] * Time.deltaTime;
 
                     float bob = Mathf.Sin((elapsed + finishPhaseTime) * 11f + i * 0.8f) * 3.5f;
-                    // 到達終點線後停止彈跳
                     if (newX >= finishScreenXFinal + horseW)
                         bob = 0f;
 
                     _markers[i].anchoredPosition = new Vector2(newX, laneY[i] + bob);
 
-                    // 還沒跑過終點線的話繼續
                     if (newX < finishScreenXFinal + horseW * 0.5f)
                         allPassed = false;
 
-                    // 記錄過線
                     if (newX >= finishScreenXFinal && !hasFinished.Contains(i + 1))
                     {
                         hasFinished.Add(i + 1);
