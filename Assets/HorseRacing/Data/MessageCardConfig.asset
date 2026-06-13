@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a296baa18bb05cb47b988774a68f2207, type: 3}
+  m_Name: MessageCardConfig
+  m_EditorClassIdentifier: HorseRacing.Core::HorseRacing.MessageCardConfig
+  entries:
+  - bonus: 0
+    description: "\u72C0\u614B\u5F88\u5DEE"
+  - bonus: 1
+    description: "\u4E0A\u5834\u6BD4\u8CFD\u525B\u7D50\u675F"
+  - bonus: 2
+    description: "\u4ECA\u5929\u80C3\u53E3\u4E0D\u597D"
+  - bonus: 3
+    description: "\u5FC3\u60C5\u5F88\u597D"
+  - bonus: 4
+    description: "\u662F\u4E0A\u6B21\u51A0\u8ECD"
+  - bonus: 5
+    description: "\u525B\u7761\u98FD"
+  - bonus: 6
+    description: "\u770B\u8D77\u4F86\u5F88 Chill"
+  - bonus: 7
+    description: "\u55E8\u5F97\u98DB\u8D77"

@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03eff84c62cf23a46bc51da339a40c22, type: 3}
+  m_Name: Event_Tailwind
+  m_EditorClassIdentifier: HorseRacing.Core::HorseRacing.EventDefinition
+  eventName: Tailwind
+  displayName: "\u9806\u98A8"
+  description: "\u9806\u98A8\u52A9\u8DD1\uFF0C\u901F\u5EA6\u63D0\u5347"
+  triggerChance: 0.2
+  speedModifier: 1
+  target: 0

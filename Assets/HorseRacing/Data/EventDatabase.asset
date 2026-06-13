@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4f890d6e4db41e40b1159935cd8049c, type: 3}
+  m_Name: EventDatabase
+  m_EditorClassIdentifier: HorseRacing.Core::HorseRacing.EventDatabase
+  events:
+  - {fileID: 11400000, guid: 4a18cfd0a6a7ab14c9d53bdfc2edcf1e, type: 2}
+  - {fileID: 11400000, guid: e18ba78a9f1df5d40bb61fb01d1eca0d, type: 2}
+  - {fileID: 11400000, guid: 467a4191d05ed56449cbcea35f8891b5, type: 2}

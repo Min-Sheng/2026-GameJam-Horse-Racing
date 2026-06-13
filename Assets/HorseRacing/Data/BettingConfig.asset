@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f9d5edd9c58acb7469055c4081efd3b3, type: 3}
+  m_Name: BettingConfig
+  m_EditorClassIdentifier: HorseRacing.Core::HorseRacing.BettingConfig
+  bettingRounds: 3
+  betTypes:
+  - type: 0
+    displayName: "\u7368\u8D0F"
+    payoutMultiplier: 3
+    selectionCount: 1
+    ordered: 0
+  - type: 1
+    displayName: "\u4F4D\u7F6E"
+    payoutMultiplier: 1.5
+    selectionCount: 1
+    ordered: 0
+  - type: 2
+    displayName: "\u9023\u8D0F"
+    payoutMultiplier: 5
+    selectionCount: 2
+    ordered: 0
+  - type: 3
+    displayName: "\u6B63\u9023\u8D0F"
+    payoutMultiplier: 8
+    selectionCount: 2
+    ordered: 1
+  - type: 4
+    displayName: "\u4E09\u91CD\u5F69"
+    payoutMultiplier: 15
+    selectionCount: 3
+    ordered: 0
+  - type: 5
+    displayName: "\u4E09\u9023\u55AE"
+    payoutMultiplier: 30
+    selectionCount: 3
+    ordered: 1
