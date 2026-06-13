@@ -25,13 +25,11 @@ namespace HorseRacing.UI
         private TextMeshProUGUI _rankText;
         private Image _finishLine;
 
-        // 側視：馬匹在畫面下半部跑，上半部是天空/背景
-        private const float HorseAreaTop = 0.35f;    // 馬匹區域從畫面 35% 開始（上方留給天空）
-        private const float HorseAreaBottom = 0.85f; // 馬匹區域到畫面 85%（下方留給事件文字）
+        // 側視：馬匹限制在畫面下半部（50%~90%），彼此可重疊
+        private const float HorseAreaTop = 0.52f;    // 馬匹區域從畫面 52% 開始（下半部）
+        private const float HorseAreaBottom = 0.88f; // 馬匹區域到畫面 88%
         private const float StartX = 0.05f;          // 起跑 X（百分比）
         private const float EndX = 0.92f;            // 終點 X（百分比）
-        private const float HorseSize = 80f;         // 馬匹圖片尺寸（寬）
-        private const float HorseSizeH = 64f;        // 馬匹圖片尺寸（高）
 
         public void Init(GameUI ui, Sprite horse, Sprite grass, Sprite mud, Sprite snow)
         {
@@ -52,17 +50,17 @@ namespace HorseRacing.UI
             _bg.raycastTarget = false;
             _bg.type = Image.Type.Simple;
 
-            // 終點線
+            // 終點線（僅畫面下半部）
             _finishLine = UIFactory.Rect(transform, "FinishLine", new Color(1f, 0.2f, 0.2f, 0.7f));
             _finishLine.raycastTarget = false;
             var fr = _finishLine.rectTransform;
             fr.anchorMin = new Vector2(EndX, 0.1f);
-            fr.anchorMax = new Vector2(EndX, 0.9f);
+            fr.anchorMax = new Vector2(EndX, 0.5f);
             fr.pivot = new Vector2(0.5f, 0.5f);
             fr.sizeDelta = new Vector2(4, 0);
             fr.anchoredPosition = Vector2.zero;
 
-            // 8 匹馬
+            // 8 匹馬（尺寸在 Run() 中依畫面高度動態設定）
             for (int i = 0; i < 8; i++)
             {
                 int horseId = i + 1;
@@ -70,7 +68,7 @@ namespace HorseRacing.UI
                 var mrt = (RectTransform)marker.transform;
                 mrt.anchorMin = mrt.anchorMax = new Vector2(0, 1);
                 mrt.pivot = new Vector2(0.5f, 0.5f);
-                mrt.sizeDelta = new Vector2(HorseSize, HorseSizeH);
+                mrt.sizeDelta = new Vector2(80, 64); // 預設值，Run() 會覆蓋
 
                 // 馬匹圖片
                 var horseImg = UIFactory.Rect(marker.transform, "Sprite", Color.white);
@@ -145,13 +143,19 @@ namespace HorseRacing.UI
             float startPx = width * StartX;
             float endPx = width * EndX;
 
-            // 計算每匹馬的 Y 位置（側視：微小錯開模擬前後）
+            // 馬匹大小 = 畫面高度 / 4
+            float horseH = height / 4f;
+            float horseW = horseH * 1.25f; // 寬高比 5:4
+            for (int i = 0; i < 8; i++)
+                _markers[i].sizeDelta = new Vector2(horseW, horseH);
+
+            // 計算每匹馬的 Y 位置（限制在畫面下半部，彼此可重疊）
             float topY = height * HorseAreaTop;
             float bottomY = height * HorseAreaBottom;
             var laneY = new float[8];
             for (int i = 0; i < 8; i++)
             {
-                // 均勻分佈在 HorseAreaTop ~ HorseAreaBottom 之間
+                // 8 匹馬在窄範圍內微小錯開，允許重疊
                 float t = (i + 0.5f) / 8f;
                 laneY[i] = -(topY + t * (bottomY - topY));
             }
