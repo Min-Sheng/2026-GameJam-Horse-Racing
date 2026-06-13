@@ -231,44 +231,88 @@ namespace HorseRacing.UI
             for (int i = 0; i < 8; i++)
                 _markers[i].anchoredPosition = new Vector2(basePx, laneY[i]);
 
-            // === 階段一：背景捲動，馬匹相對跑 ===
-            // 背景在領先馬到達 100% 時停止捲動
-            while (elapsed < totalDuration)
+            // 背景捲動速度（px/s）— 用來算馬在螢幕上的絕對速度
+            float scrollSpeedPxPerSec = maxScroll / RaceDuration;
+            float leaderRate = horseRate[result.RankToHorseId[0] - 1];
+
+            // === 單一迴圈：背景捲完後馬繼續跑 ===
+            bool allPassed = false;
+            float finishMaxTime = totalDuration + 4f; // 安全上限
+
+            while (!allPassed && elapsed < finishMaxTime)
             {
                 elapsed += Time.deltaTime;
 
-                // 領先馬的進度（0~1）
-                float leaderProgress = 0f;
+                // 領先馬的進度（不 clamp，超過 1.0 代表已過終點）
+                float leaderProgressRaw = 0f;
                 for (int i = 0; i < 8; i++)
                 {
-                    float p = Mathf.Clamp01(elapsed * horseRate[i]);
-                    if (p > leaderProgress) leaderProgress = p;
+                    float p = elapsed * horseRate[i];
+                    if (p > leaderProgressRaw) leaderProgressRaw = p;
                 }
 
-                // 背景 sliding window：依領先馬進度平移（到達後停止）
-                float scrollProgress = Mathf.Clamp01(leaderProgress);
+                // 背景 sliding window：clamp 在 0~1（到終點即停）
+                float scrollProgress = Mathf.Clamp01(leaderProgressRaw);
                 float scrollX = scrollProgress * maxScroll;
                 _bgRT.anchoredPosition = new Vector2(-scrollX, 0);
 
-                // 終點線跟隨背景移動
+                // 終點線跟隨背景
                 float finishScreenX = finishLineLocalX - scrollX;
                 _finishLineRT.anchoredPosition = new Vector2(finishScreenX, 0);
 
-                // 馬匹位置：依與領先馬的差距左右錯開
+                // 背景是否已停止捲動
+                bool bgStopped = scrollProgress >= 1f;
+
+                // 馬匹位置
+                allPassed = true;
                 for (int i = 0; i < 8; i++)
                 {
-                    float p = Mathf.Clamp01(elapsed * horseRate[i]);
-                    float diff = p - leaderProgress; // ≤ 0（落後）
-                    float x = basePx + diff * width * HorseSpreadX / 0.05f;
-                    x = Mathf.Clamp(x, horseW * 0.5f, width - horseW * 0.5f);
+                    float p = elapsed * horseRate[i]; // 不 clamp，可超過 1.0
+                    float x;
 
-                    float bob = p < 1f ? Mathf.Sin(elapsed * 11f + i * 0.8f) * 3.5f : 0f;
+                    if (!bgStopped)
+                    {
+                        // 階段一：相對位移（領先者在 basePx，落後者在左邊）
+                        float diff = p - leaderProgressRaw;
+                        x = basePx + diff * width * HorseSpreadX / 0.05f;
+                    }
+                    else
+                    {
+                        // 階段二：背景不動，馬以自身世界速度向右推進
+                        // 基準 = 背景停止瞬間的位置 + 之後的位移
+                        // 背景停止時 leaderProgressRaw ≈ 1.0 (leader), 此時 leader 的 diff=0 → x=basePx
+                        // 之後每匹馬的 screenX 增加 = (自身速度) * dt 投影
+                        // 累計位移 = (p - scrollStopProgress_i) * (scrollSpeed / leaderRate) 
+                        // scrollStopProgress_i = 那匹馬在背景停止瞬間的進度 = 1.0/leaderRate * horseRate[i]... 
+                        // 簡化：直接用 (p - 1.0) 代表超過終點的量，加上相對差
+                        float pAtStop = horseRate[i] / leaderRate; // 背景停止時該馬的進度
+                        float diffAtStop = pAtStop - 1f; // 與領先者的差距（≤0）
+                        float baseAtStop = basePx + diffAtStop * width * HorseSpreadX / 0.05f;
+                        // 停止後的額外位移
+                        float extraProgress = p - pAtStop;
+                        float extraPx = extraProgress * (scrollSpeedPxPerSec / leaderRate);
+                        x = baseAtStop + extraPx;
+                    }
+
+                    x = Mathf.Clamp(x, horseW * -0.5f, width + horseW);
+
+                    // 奔跑彈跳（過了終點線就停）
+                    bool pastFinish = x >= finishScreenX + horseW;
+                    float bob = pastFinish ? 0f : Mathf.Sin(elapsed * 11f + i * 0.8f) * 3.5f;
                     _markers[i].anchoredPosition = new Vector2(x, laneY[i] + bob);
 
-                    if (p >= 1f && !hasFinished.Contains(i + 1))
+                    // 判斷是否過終點線
+                    if (x >= finishScreenX)
                     {
-                        hasFinished.Add(i + 1);
-                        finishedOrder.Add(i + 1);
+                        if (!hasFinished.Contains(i + 1))
+                        {
+                            hasFinished.Add(i + 1);
+                            finishedOrder.Add(i + 1);
+                        }
+                    }
+                    else
+                    {
+                        allPassed = false;
                     }
                 }
 
@@ -282,74 +326,13 @@ namespace HorseRacing.UI
                 }
 
                 // 階段事件
-                int stageByTime = elapsed < totalDuration * 0.33f ? 1 : (elapsed < totalDuration * 0.66f ? 2 : 3);
+                float eventPhase = Mathf.Clamp01(elapsed / totalDuration);
+                int stageByTime = eventPhase < 0.33f ? 1 : (eventPhase < 0.66f ? 2 : 3);
                 if (stageByTime > shownStage)
                 {
                     shownStage = stageByTime;
                     if (!string.IsNullOrEmpty(stageMsg[shownStage]))
                         _eventText.text = "賽事事件：" + stageMsg[shownStage];
-                }
-
-                yield return null;
-            }
-
-            // === 階段二：背景停止，所有馬跑過終點線 ===
-            // 背景固定在最右端
-            _bgRT.anchoredPosition = new Vector2(-maxScroll, 0);
-            float finishScreenXFinal = finishLineLocalX - maxScroll;
-            _finishLineRT.anchoredPosition = new Vector2(finishScreenXFinal, 0);
-
-            // 計算每匹馬在階段一結束時的螢幕速度（px/s）
-            // 階段一中：馬的 screenX = basePx + (p - leaderP) * spreadFactor
-            // 背景停止後馬的移動 = 自身進度增加 * spreadFactor + 背景不再抵消的速度
-            // 簡化：用階段一最後一幀的 scrollSpeed + 相對速度來計算
-            float scrollSpeedPxPerSec = maxScroll / RaceDuration; // 背景每秒捲動的像素
-            var horseScreenSpeed = new float[8];
-            for (int i = 0; i < 8; i++)
-            {
-                // 每匹馬的「世界速度」= horseRate * totalTrackLength
-                // 階段一中馬在螢幕上的速度 ≈ (自身速度 - 背景速度) 的螢幕投影
-                // 背景停止後，馬的螢幕速度 = 自身世界速度 在螢幕上的完整表現
-                // 為了無縫銜接，使用：背景捲動速度(每秒) × (該馬速率 / 領先馬速率)
-                float leaderRate = horseRate[result.RankToHorseId[0] - 1];
-                horseScreenSpeed[i] = scrollSpeedPxPerSec * (horseRate[i] / leaderRate);
-            }
-
-            // 所有馬向右移動直到全部超過終點線
-            float finishPhaseTime = 0f;
-            float finishMaxTime = 4f;
-            bool allPassed = false;
-
-            while (!allPassed && finishPhaseTime < finishMaxTime)
-            {
-                finishPhaseTime += Time.deltaTime;
-                allPassed = true;
-
-                for (int i = 0; i < 8; i++)
-                {
-                    var pos = _markers[i].anchoredPosition;
-
-                    // 使用與階段一末尾一致的速度
-                    float newX = pos.x + horseScreenSpeed[i] * Time.deltaTime;
-
-                    float bob = Mathf.Sin((elapsed + finishPhaseTime) * 11f + i * 0.8f) * 3.5f;
-                    if (newX >= finishScreenXFinal + horseW)
-                        bob = 0f;
-
-                    _markers[i].anchoredPosition = new Vector2(newX, laneY[i] + bob);
-
-                    if (newX < finishScreenXFinal + horseW * 0.5f)
-                        allPassed = false;
-
-                    if (newX >= finishScreenXFinal && !hasFinished.Contains(i + 1))
-                    {
-                        hasFinished.Add(i + 1);
-                        finishedOrder.Add(i + 1);
-                        var sb2 = new System.Text.StringBuilder();
-                        for (int r = 0; r < finishedOrder.Count; r++)
-                            sb2.Append($"第{r + 1}名: Horse {finishedOrder[r]}\n");
-                        _rankText.text = sb2.ToString();
-                    }
                 }
 
                 yield return null;
