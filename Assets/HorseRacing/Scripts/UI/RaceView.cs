@@ -14,7 +14,6 @@ namespace HorseRacing.UI
     public class RaceView : MonoBehaviour
     {
         private GameUI _ui;
-        private Sprite _horseSprite;
         private RectTransform _self;
         private bool _built;
         private bool _playing;
@@ -29,6 +28,17 @@ namespace HorseRacing.UI
         private Image _finishLine;
         private RectTransform _finishLineRT;
 
+        // 子系統
+        private MinimapController _minimap;
+        private EventCardController _eventCards;
+        private RaceAnimConfig _raceAnimConfig;
+
+        // Sprite animation state (pre-allocated, zero per-frame allocation)
+        private HorseSpriteConfig _horseSpriteConfig;
+        private readonly Image[] _horseImages = new Image[8];
+        private readonly Sprite[][] _horseSpriteArrays = new Sprite[8][];
+        private readonly bool[] _finished = new bool[8];
+
         // 卷軸參數
         private const float RaceDuration = 5.0f;       // 比賽總時長（秒）
         private const float BgWidthMultiplier = 4f;    // 背景圖寬度 = 畫面寬度 × 此值
@@ -39,13 +49,13 @@ namespace HorseRacing.UI
 
         private Sprite _trackGrass, _trackMud, _trackSnow;
 
-        public void Init(GameUI ui, Sprite horse, Sprite grass, Sprite mud, Sprite snow)
+        public void Init(GameUI ui, Sprite grass, Sprite mud, Sprite snow, HorseSpriteConfig horseSpriteConfig)
         {
             _ui = ui;
-            _horseSprite = horse;
             _trackGrass = grass;
             _trackMud = mud;
             _trackSnow = snow;
+            _horseSpriteConfig = horseSpriteConfig;
             _self = (RectTransform)transform;
         }
 
@@ -106,10 +116,19 @@ namespace HorseRacing.UI
                 mrt.sizeDelta = new Vector2(80, 64);
 
                 var horseImg = UIFactory.Rect(marker.transform, "Sprite", Color.white);
-                horseImg.sprite = _horseSprite;
+                // Set initial sprite from config (will be updated in Play() anyway)
+                if (_horseSpriteConfig != null)
+                {
+                    var initSprites = _horseSpriteConfig.GetSprites(i + 1);
+                    if (initSprites != null && initSprites.Length > 0 && initSprites[0] != null)
+                        horseImg.sprite = initSprites[0];
+                }
                 horseImg.preserveAspect = true;
                 horseImg.raycastTarget = false;
                 UIFactory.Stretch(horseImg.rectTransform);
+
+                // Store reference for sprite animation (zero per-frame allocation)
+                _horseImages[i] = horseImg;
 
                 var numBg = UIFactory.Rect(marker.transform, "NumBg", UIFactory.HorseColors[i]);
                 numBg.raycastTarget = false;
@@ -149,14 +168,38 @@ namespace HorseRacing.UI
             trt.anchorMax = new Vector2(0.35f, 1f);
             trt.offsetMin = new Vector2(16, 0);
             trt.offsetMax = new Vector2(0, -8);
+
+            // 子系統初始化：EventCardController（先加，sibling order 較低）
+            _eventCards = gameObject.AddComponent<EventCardController>();
+            _eventCards.Init(_self, _raceAnimConfig);
+
+            // 子系統初始化：MinimapController（後加，sibling order 較高，渲染在上層不被遮蔽）
+            _minimap = gameObject.AddComponent<MinimapController>();
+            _minimap.Init(_self, _raceAnimConfig);
         }
 
         public void Play(GameManager gm)
         {
+            _raceAnimConfig = gm.config != null ? gm.config.raceAnim : null;
             Build();
             if (_playing) return;
             _bg.sprite = GetTrackSprite(gm.Round.Track);
             _trackLabel.text = "賽道：" + GetTrackDisplayName(gm.Round.Track);
+
+            // Cache sprite arrays from config and reset finished state (zero per-frame allocation)
+            for (int i = 0; i < 8; i++)
+            {
+                _horseSpriteArrays[i] = _horseSpriteConfig != null
+                    ? _horseSpriteConfig.GetSprites(i + 1)
+                    : null;
+                _finished[i] = false;
+
+                // Set initial sprite to each horse's frame 0 (replaces shared _horseSprite)
+                var initFrames = _horseSpriteArrays[i];
+                if (initFrames != null && initFrames.Length >= 1 && initFrames[0] != null)
+                    _horseImages[i].sprite = initFrames[0];
+            }
+
             StartCoroutine(Run(gm));
         }
 
@@ -174,8 +217,13 @@ namespace HorseRacing.UI
         private IEnumerator Run(GameManager gm)
         {
             _playing = true;
-            _eventText.text = "";
+            _eventText.gameObject.SetActive(false); // 隱藏舊事件文字，改用 EventCardController
             _rankText.text = "";
+
+            // Read sprite frame rate from config, clamped to [1,30]
+            int spriteFps = _raceAnimConfig != null ? _raceAnimConfig.spriteFrameRate : 8;
+            if (spriteFps < 1) spriteFps = 1;
+            else if (spriteFps > 30) spriteFps = 30;
 
             yield return null;
             yield return null;
@@ -230,16 +278,11 @@ namespace HorseRacing.UI
                 horseRate[hid - 1] = 1f / (RaceDuration + rank * RaceDuration * 0.05f);
             }
 
-            // 事件文字
-            var stageMsg = new string[4];
+            // 事件依階段分組（供 EventCardController 使用）
+            var stageEvents = new List<StageEventLog>[4];
+            for (int s = 0; s < 4; s++) stageEvents[s] = new List<StageEventLog>();
             foreach (var e in result.Events)
-            {
-                string defended = e.Defended ? "（已防禦）" : $"{(e.SpeedModifier > 0 ? "+" : "")}{e.SpeedModifier}";
-                string line = $"Horse{e.HorseId} {e.EventName} {defended}";
-                stageMsg[e.Stage] = string.IsNullOrEmpty(stageMsg[e.Stage])
-                    ? line
-                    : stageMsg[e.Stage] + "　|　" + line;
-            }
+                stageEvents[e.Stage].Add(e);
 
             float totalDuration = RaceDuration * 1.15f;
             var finishedOrder = new List<int>();
@@ -259,6 +302,15 @@ namespace HorseRacing.UI
             // === 單一迴圈：背景捲完後馬繼續跑 ===
             bool allPassed = false;
             float finishMaxTime = totalDuration + 4f; // 安全上限
+
+            // 小地圖：賽事開始時顯示
+            _minimap.Show();
+
+            // 事件卡片系統：賽事開始時顯示
+            _eventCards.Show();
+
+            // 用於每幀傳遞馬匹進度給小地圖
+            var currentProgress = new float[8];
 
             while (!allPassed && elapsed < finishMaxTime)
             {
@@ -315,6 +367,10 @@ namespace HorseRacing.UI
                         x = baseAtStop + extraPx;
                     }
 
+                    // 小地圖進度：基於馬匹在整條背景上的絕對位置（clamp 前）
+                    float horseAbsX = x + scrollX;
+                    currentProgress[i] = Mathf.Clamp01(horseAbsX / finishLineLocalX);
+
                     x = Mathf.Clamp(x, horseW * -0.5f, width + horseW);
 
                     // 奔跑彈跳（過了終點線就停）
@@ -330,12 +386,43 @@ namespace HorseRacing.UI
                             hasFinished.Add(i + 1);
                             finishedOrder.Add(i + 1);
                         }
+
+                        // Finish: set finished flag and assign frame 0
+                        if (!_finished[i])
+                        {
+                            _finished[i] = true;
+                            var finFrames = _horseSpriteArrays[i];
+                            if (finFrames != null && finFrames.Length >= 1)
+                            {
+                                var frame0 = finFrames[0];
+                                if (frame0 != null)
+                                    _horseImages[i].sprite = frame0;
+                            }
+                        }
                     }
                     else
                     {
                         allPassed = false;
                     }
+
+                    // Frame-cycling sprite animation (zero allocation)
+                    if (!_finished[i])
+                    {
+                        var frames = _horseSpriteArrays[i];
+                        if (frames != null && frames.Length >= 1)
+                        {
+                            int frameIndex = (int)(elapsed * spriteFps) % frames.Length;
+                            var sprite = frames[frameIndex];
+                            if (sprite != null)
+                                _horseImages[i].sprite = sprite;
+                            // If sprite is null, retain previous sprite (no assignment)
+                        }
+                        // If frames is null or empty, skip animation (keep current sprite)
+                    }
                 }
+
+                // 小地圖：每幀更新各馬匹進度位置
+                _minimap.UpdatePositions(currentProgress);
 
                 // 名次
                 if (finishedOrder.Count > 0)
@@ -346,18 +433,23 @@ namespace HorseRacing.UI
                     _rankText.text = sb.ToString();
                 }
 
-                // 階段事件
+                // 階段事件：使用 EventCardController 顯示卡片
                 float eventPhase = Mathf.Clamp01(elapsed / totalDuration);
                 int stageByTime = eventPhase < 0.33f ? 1 : (eventPhase < 0.66f ? 2 : 3);
                 if (stageByTime > shownStage)
                 {
                     shownStage = stageByTime;
-                    if (!string.IsNullOrEmpty(stageMsg[shownStage]))
-                        _eventText.text = "賽事事件：" + stageMsg[shownStage];
+                    foreach (var e in stageEvents[shownStage])
+                        _eventCards.EnqueueEvent(e);
                 }
 
                 yield return null;
             }
+
+            // 賽事結束：清理子系統
+            _minimap.Hide();
+            _eventCards.Clear();
+            _eventCards.Hide();
 
             yield return new WaitForSeconds(1.5f);
             _playing = false;

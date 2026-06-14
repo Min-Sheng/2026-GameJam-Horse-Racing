@@ -6,4 +6,5 @@
   <Project Path="HorseRacing.UI.csproj" />
   <Project Path="Assembly-CSharp-Editor.csproj" />
   <Project Path="Assembly-CSharp.csproj" />
+  <Project Path="HorseRacing.Editor.csproj" />
 </Solution>

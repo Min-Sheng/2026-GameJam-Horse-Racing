@@ -1,0 +1,51 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9, type: 3}
+  m_Name: HorseSpriteConfig
+  m_EditorClassIdentifier: HorseRacing.Core::HorseRacing.HorseSpriteConfig
+  entries:
+  - frames:
+    - {fileID: 191569425, guid: 8401bce15d87fb54d8fa0cb0551cf4b0, type: 3}
+    - {fileID: -899493895, guid: 8401bce15d87fb54d8fa0cb0551cf4b0, type: 3}
+    - {fileID: 468145983, guid: 8401bce15d87fb54d8fa0cb0551cf4b0, type: 3}
+    - {fileID: -405858662, guid: 8401bce15d87fb54d8fa0cb0551cf4b0, type: 3}
+  - frames:
+    - {fileID: -384877119, guid: 67d9af71a7998da4eb00ac76c17f7887, type: 3}
+  - frames:
+    - {fileID: 1455854459, guid: 93a63355d529ec94abc828ad1bcc3905, type: 3}
+  - frames:
+    - {fileID: -2054654409, guid: 3f8492a6c0a2c464a9bc5e0eeba7fecf, type: 3}
+    - {fileID: -399013163, guid: 3f8492a6c0a2c464a9bc5e0eeba7fecf, type: 3}
+    - {fileID: 1328725051, guid: 3f8492a6c0a2c464a9bc5e0eeba7fecf, type: 3}
+    - {fileID: 820387896, guid: 3f8492a6c0a2c464a9bc5e0eeba7fecf, type: 3}
+  - frames:
+    - {fileID: -1758224868, guid: f5bb5fdf4d38f7c4e950c065f26cc8aa, type: 3}
+    - {fileID: -1758117723, guid: f5bb5fdf4d38f7c4e950c065f26cc8aa, type: 3}
+    - {fileID: 1415179815, guid: f5bb5fdf4d38f7c4e950c065f26cc8aa, type: 3}
+    - {fileID: -2003695612, guid: f5bb5fdf4d38f7c4e950c065f26cc8aa, type: 3}
+  - frames:
+    - {fileID: -1139181756, guid: 30b444c27a0643844ac92ce9e6027625, type: 3}
+  - frames:
+    - {fileID: 1258094244, guid: 34ac59edec5290c4b90b2d5cf628bc3d, type: 3}
+    - {fileID: 1576317566, guid: 34ac59edec5290c4b90b2d5cf628bc3d, type: 3}
+    - {fileID: -989373567, guid: 34ac59edec5290c4b90b2d5cf628bc3d, type: 3}
+    - {fileID: 1547480855, guid: 34ac59edec5290c4b90b2d5cf628bc3d, type: 3}
+  - frames:
+    - {fileID: 1571053112, guid: a531743032225df4d8def45e95ba152d, type: 3}
+    - {fileID: -977486790, guid: a531743032225df4d8def45e95ba152d, type: 3}
+    - {fileID: -1659369656, guid: a531743032225df4d8def45e95ba152d, type: 3}
+    - {fileID: -1438705777, guid: a531743032225df4d8def45e95ba152d, type: 3}
+  defaultFrames:
+  - {fileID: 191569425, guid: 8401bce15d87fb54d8fa0cb0551cf4b0, type: 3}
+  - {fileID: -899493895, guid: 8401bce15d87fb54d8fa0cb0551cf4b0, type: 3}
+  - {fileID: 468145983, guid: 8401bce15d87fb54d8fa0cb0551cf4b0, type: 3}
+  - {fileID: -405858662, guid: 8401bce15d87fb54d8fa0cb0551cf4b0, type: 3}

@@ -320,10 +320,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: HorseRacing.UI::HorseRacing.UI.GameUI
   chineseFont: {fileID: 11400000, guid: 2fdac280d5d26a94c8ee1672ade14780, type: 2}
-  horseSprite: {fileID: 21300000, guid: 2a789203d2a535446a7fc0d3b8667477, type: 3}
   trackGrass: {fileID: 21300000, guid: 5af47464af5309c429a846ee31c74a55, type: 3}
   trackMud: {fileID: 21300000, guid: b5c8535aa39e75c478fa4682e14780db, type: 3}
   trackSnow: {fileID: 21300000, guid: 9587fa098af83a944b0397a737e6d662, type: 3}
+  horseSpriteConfig: {fileID: 11400000, guid: b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7, type: 2}
 --- !u!1 &1494010137
 GameObject:
   m_ObjectHideFlags: 0

@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7dc2b03ce2fdf064c8073565b8769c1a, type: 3}
+  m_Name: RaceAnimConfig
+  m_EditorClassIdentifier: HorseRacing.Core::HorseRacing.RaceAnimConfig
+  minimapWidthPercent: 0.3
+  minimapHeightPercent: 0.28
+  minimapMarginPx: 10
+  minimapBgAlpha: 0.6
+  cardPopupDuration: 0.25
+  cardHoldDuration: 0.4
+  cardArchiveDuration: 0.35
+  cardWidth: 150
+  cardHeight: 80
+  archivedScale: 1
+  maxVisibleArchived: 8
+  stackMarginPx: 8
+  stackSpacing: 6
