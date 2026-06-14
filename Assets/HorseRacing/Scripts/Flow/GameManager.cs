@@ -141,6 +141,13 @@ namespace HorseRacing
             }
         }
 
+        /// <summary>跳過剩餘下注輪，直接開始比賽（用於資金不足但已有下注時）。</summary>
+        public void SkipToRace()
+        {
+            if (Phase != GamePhase.Betting) return;
+            StartRace();
+        }
+
         /// <summary>開賽：公布賽道並模擬比賽（PRD §9）。</summary>
         public void StartRace()
         {
