@@ -11,11 +11,11 @@ namespace HorseRacing
     /// <summary>投注型別（PRD §10）。</summary>
     public enum BetType
     {
-        Win,       // 獨贏：第一名
-        Place,     // 位置：前三名
-        Quinella,  // 連贏：前兩名不分順序
-        Exacta,    // 正連贏：前兩名順序正確
-        Trio,      // 三重彩：前三名不分順序
+        Win,       // 單勝：第一名
+        Place,     // 複勝：前三名
+        Quinella,  // 馬連：前兩名不分順序
+        Exacta,    // 馬單：前兩名順序正確
+        Trio,      // 三連複：前三名不分順序
         Trifecta   // 三連單：前三名順序正確
     }
 

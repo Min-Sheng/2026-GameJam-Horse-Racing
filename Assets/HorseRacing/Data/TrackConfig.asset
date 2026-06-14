@@ -20,27 +20,27 @@ MonoBehaviour:
   - type: 2
     displayName: "\u96EA\u5730"
   preferences:
-  - grass: 1
-    mud: 1
-    snow: -1
-  - grass: -2
+  - grass: 3
     mud: 2
-    snow: 0
-  - grass: 1
-    mud: -1
+    snow: -4
+  - grass: -5
+    mud: 4
     snow: 1
   - grass: 2
+    mud: -3
+    snow: 4
+  - grass: 5
     mud: 0
-    snow: -2
-  - grass: -1
-    mud: 1
-    snow: 1
+    snow: -5
+  - grass: -3
+    mud: 4
+    snow: 3
   - grass: 0
-    mud: -2
-    snow: 2
-  - grass: 1
+    mud: -5
+    snow: 5
+  - grass: 4
     mud: 1
-    snow: -1
-  - grass: 0
-    mud: -2
-    snow: 2
+    snow: -3
+  - grass: -2
+    mud: -4
+    snow: 5

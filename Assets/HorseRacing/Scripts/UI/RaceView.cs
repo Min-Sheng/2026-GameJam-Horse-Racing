@@ -240,25 +240,22 @@ namespace HorseRacing.UI
                 waitFrames++;
             }
 
-            // 設定背景寬度（比畫面寬 N 倍）
+            // 設定背景寬度
             float bgWidth = width * BgWidthMultiplier;
             _bgRT.sizeDelta = new Vector2(bgWidth, 0);
-            _bgRT.anchoredPosition = new Vector2(0, 0); // 初始：左端對齊畫面左端
+            _bgRT.anchoredPosition = new Vector2(0, 0);
 
-            // sliding window 的最大偏移 = bgWidth - 畫面寬
             float maxScroll = bgWidth - width;
-
-            // 終點線位置（在背景右端附近，距右邊 5%）
             float finishLineLocalX = bgWidth * 0.95f;
             _finishLineRT.sizeDelta = new Vector2(6, height * 0.5f);
 
-            // 馬匹大小 = 畫面高度 / 4
+            // 馬匹大小
             float horseH = height / 4f;
             float horseW = horseH * 1.25f;
             for (int i = 0; i < 8; i++)
                 _markers[i].sizeDelta = new Vector2(horseW, horseH);
 
-            // Y 位置（下半部）
+            // Y 位置
             float topY = height * HorseAreaTop;
             float bottomY = height * HorseAreaBottom;
             var laneY = new float[8];
@@ -269,13 +266,31 @@ namespace HorseRacing.UI
             }
 
             var result = gm.Round.Result;
+            int horseCount = result.RankToHorseId.Length;
 
-            // 每匹馬的速率（第1名最快）
-            var horseRate = new float[8];
-            for (int rank = 0; rank < result.RankToHorseId.Length; rank++)
+            // 從 StagePositions 建立每匹馬的正規化進度（0~1）
+            // stageProgress[stage][horseIdx] = 在該段結束時的正規化位移
+            float maxCumulative = 0f;
+            if (result.StagePositions != null && result.StagePositions.Length > 0)
             {
-                int hid = result.RankToHorseId[rank];
-                horseRate[hid - 1] = 1f / (RaceDuration + rank * RaceDuration * 0.05f);
+                var lastStage = result.StagePositions[result.StagePositions.Length - 1];
+                for (int i = 0; i < horseCount; i++)
+                    if (lastStage[i] > maxCumulative) maxCumulative = lastStage[i];
+            }
+            if (maxCumulative < 1f) maxCumulative = 1f;
+
+            // 建立進度 keyframes: [0]=起點(0), [1]=stage1結束, [2]=stage2結束, [3]=stage3結束
+            // 每匹馬有 4 個 keyframe 值
+            var keyframes = new float[horseCount][];
+            for (int i = 0; i < horseCount; i++)
+            {
+                keyframes[i] = new float[4];
+                keyframes[i][0] = 0f;
+                if (result.StagePositions != null)
+                {
+                    for (int s = 0; s < result.StagePositions.Length && s < 3; s++)
+                        keyframes[i][s + 1] = result.StagePositions[s][i] / maxCumulative;
+                }
             }
 
             // 事件依階段分組（供 EventCardController 使用）
@@ -284,6 +299,8 @@ namespace HorseRacing.UI
             foreach (var e in result.Events)
                 stageEvents[e.Stage].Add(e);
 
+            // 動畫時間分配：每段佔 RaceDuration/3 秒
+            float stageDuration = RaceDuration / 3f;
             float totalDuration = RaceDuration * 1.15f;
             var finishedOrder = new List<int>();
             var hasFinished = new HashSet<int>();
@@ -295,13 +312,10 @@ namespace HorseRacing.UI
             for (int i = 0; i < 8; i++)
                 _markers[i].anchoredPosition = new Vector2(basePx, laneY[i]);
 
-            // 背景捲動速度（px/s）— 用來算馬在螢幕上的絕對速度
             float scrollSpeedPxPerSec = maxScroll / RaceDuration;
-            float leaderRate = horseRate[result.RankToHorseId[0] - 1];
 
-            // === 單一迴圈：背景捲完後馬繼續跑 ===
             bool allPassed = false;
-            float finishMaxTime = totalDuration + 4f; // 安全上限
+            float finishMaxTime = totalDuration + 4f;
 
             // 小地圖：賽事開始時顯示
             _minimap.Show();
@@ -316,54 +330,65 @@ namespace HorseRacing.UI
             {
                 elapsed += Time.deltaTime;
 
-                // 領先馬的進度（不 clamp，超過 1.0 代表已過終點）
-                float leaderProgressRaw = 0f;
-                for (int i = 0; i < 8; i++)
+                // 計算每匹馬在當前時間的進度（插值 keyframes）
+                var horseProgress = new float[horseCount];
+                for (int i = 0; i < horseCount; i++)
                 {
-                    float p = elapsed * horseRate[i];
-                    if (p > leaderProgressRaw) leaderProgressRaw = p;
+                    // 當前時間對應哪個段
+                    float normalizedTime = elapsed / RaceDuration;
+                    if (normalizedTime >= 1f)
+                    {
+                        horseProgress[i] = keyframes[i][3];
+                    }
+                    else
+                    {
+                        // 3 段，每段佔 1/3
+                        float stageFloat = normalizedTime * 3f;
+                        int stageIdx = Mathf.Clamp((int)stageFloat, 0, 2);
+                        float stageT = stageFloat - stageIdx;
+                        // 在 keyframes[stageIdx] 和 keyframes[stageIdx+1] 之間插值
+                        float from = keyframes[i][stageIdx];
+                        float to = keyframes[i][stageIdx + 1];
+                        horseProgress[i] = Mathf.Lerp(from, to, stageT);
+                    }
                 }
 
-                // 背景 sliding window：clamp 在 0~1（到終點即停）
-                float scrollProgress = Mathf.Clamp01(leaderProgressRaw);
+                // 領先馬進度
+                float leaderProgress = 0f;
+                for (int i = 0; i < horseCount; i++)
+                    if (horseProgress[i] > leaderProgress) leaderProgress = horseProgress[i];
+                if (leaderProgress < 0.001f) leaderProgress = 0.001f;
+
+                // 背景捲動
+                float scrollProgress = Mathf.Clamp01(leaderProgress);
                 float scrollX = scrollProgress * maxScroll;
                 _bgRT.anchoredPosition = new Vector2(-scrollX, 0);
 
-                // 終點線跟隨背景
+                // 終點線
                 float finishScreenX = finishLineLocalX - scrollX;
                 _finishLineRT.anchoredPosition = new Vector2(finishScreenX, 0);
 
-                // 背景是否已停止捲動
                 bool bgStopped = scrollProgress >= 1f;
 
                 // 馬匹位置
                 allPassed = true;
-                for (int i = 0; i < 8; i++)
+                for (int i = 0; i < horseCount; i++)
                 {
-                    float p = elapsed * horseRate[i]; // 不 clamp，可超過 1.0
+                    float p = horseProgress[i];
                     float x;
 
                     if (!bgStopped)
                     {
-                        // 階段一：相對位移（領先者在 basePx，落後者在左邊）
-                        float diff = p - leaderProgressRaw;
+                        float diff = p - leaderProgress;
                         x = basePx + diff * width * HorseSpreadX / 0.05f;
                     }
                     else
                     {
-                        // 階段二：背景不動，馬以自身世界速度向右推進
-                        // 基準 = 背景停止瞬間的位置 + 之後的位移
-                        // 背景停止時 leaderProgressRaw ≈ 1.0 (leader), 此時 leader 的 diff=0 → x=basePx
-                        // 之後每匹馬的 screenX 增加 = (自身速度) * dt 投影
-                        // 累計位移 = (p - scrollStopProgress_i) * (scrollSpeed / leaderRate) 
-                        // scrollStopProgress_i = 那匹馬在背景停止瞬間的進度 = 1.0/leaderRate * horseRate[i]... 
-                        // 簡化：直接用 (p - 1.0) 代表超過終點的量，加上相對差
-                        float pAtStop = horseRate[i] / leaderRate; // 背景停止時該馬的進度
-                        float diffAtStop = pAtStop - 1f; // 與領先者的差距（≤0）
-                        float baseAtStop = basePx + diffAtStop * width * HorseSpreadX / 0.05f;
-                        // 停止後的額外位移
-                        float extraProgress = p - pAtStop;
-                        float extraPx = extraProgress * (scrollSpeedPxPerSec / leaderRate);
+                        float pAtStop = horseProgress[i]; // 已到最終進度
+                        float extraProgress = (elapsed / RaceDuration - 1f) * (keyframes[i][3]);
+                        float baseAtStop = basePx + (keyframes[i][3] - keyframes[result.RankToHorseId[0] - 1][3])
+                            / keyframes[result.RankToHorseId[0] - 1][3] * width * HorseSpreadX / 0.05f;
+                        float extraPx = Mathf.Max(0, elapsed - RaceDuration) * scrollSpeedPxPerSec * keyframes[i][3] / maxCumulative;
                         x = baseAtStop + extraPx;
                     }
 
@@ -373,12 +398,10 @@ namespace HorseRacing.UI
 
                     x = Mathf.Clamp(x, horseW * -0.5f, width + horseW);
 
-                    // 奔跑彈跳（過了終點線就停）
                     bool pastFinish = x >= finishScreenX + horseW;
                     float bob = pastFinish ? 0f : Mathf.Sin(elapsed * 11f + i * 0.8f) * 3.5f;
                     _markers[i].anchoredPosition = new Vector2(x, laneY[i] + bob);
 
-                    // 判斷是否過終點線
                     if (x >= finishScreenX)
                     {
                         if (!hasFinished.Contains(i + 1))

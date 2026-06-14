@@ -24,7 +24,8 @@ namespace HorseRacing
                 {
                     Id = i + 1,
                     BaseSpeed = cfg.baseSpeed,
-                    HiddenBonus = pool[i]
+                    HiddenBonus = pool[i],
+                    ConditionBonus = rng.Range(-5, 6) // -5 ~ +5 當日狀態隨機浮動
                 });
             }
             return horses;

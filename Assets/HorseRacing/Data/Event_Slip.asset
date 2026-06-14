@@ -15,6 +15,6 @@ MonoBehaviour:
   eventName: Slip
   displayName: "\u6ED1\u5012"
   description: "\u99AC\u5339\u6ED1\u5012\uFF0C\u901F\u5EA6\u4E0B\u964D"
-  triggerChance: 0.15
+  triggerChance: 0.3
   speedModifier: -2
   target: 0
