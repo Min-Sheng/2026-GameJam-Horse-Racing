@@ -42,6 +42,7 @@ namespace HorseRacing.UI
         private TextMeshProUGUI _bettingTitle, _selectionText, _stakeText, _betsSummary, _analystText;
         private readonly List<TextMeshProUGUI> _horseRowText = new List<TextMeshProUGUI>();
         private readonly List<Button> _horseRowButton = new List<Button>();
+        private readonly List<Image> _horseStatusImages = new List<Image>();
         private GameObject _analystSection;
         private Button _confirmButton;
         private TextMeshProUGUI _confirmLabel;
@@ -213,6 +214,14 @@ namespace HorseRacing.UI
                 var txt = UIFactory.Text(row.transform, "", 20, TextAlignmentOptions.Left);
                 txt.raycastTarget = false;
                 UIFactory.LE(txt.gameObject, flexW: 1);
+
+                var statusGo = UIFactory.NewUIObject("StatusImg", row.transform);
+                var statusImg = statusGo.AddComponent<Image>();
+                statusImg.preserveAspect = true;
+                statusImg.raycastTarget = false;
+                UIFactory.LE(statusGo, prefH: 48, prefW: 48);
+                statusGo.SetActive(false);
+                _horseStatusImages.Add(statusImg);
 
                 _horseRowButton.Add(btn);
                 _horseRowText.Add(txt);
@@ -445,6 +454,36 @@ namespace HorseRacing.UI
                 _horseRowText[i].text = $"{sel}Horse {horseId}　賠率 {(odds != null ? odds.WinOdds.ToString("0.00") : "-")}{card}";
                 var img = _horseRowButton[i].GetComponent<Image>();
                 img.color = _selectedHorses.Contains(horseId) ? UIFactory.AccentGreen : UIFactory.Card;
+            }
+
+            // 更新狀態圖片（只在有情報揭露時顯示）
+            // HorseID → HorseStatusConfig index mapping:
+            // Horse1=馬(6), Horse2=石頭(2), Horse3=貓利(3), Horse4=輪椅(4), Horse5=金魚(5), Horse6=Tardis(7), Horse7=囚犯(0), Horse8=墓碑(1)
+            int[] horseIdToStatusIndex = { 6, 2, 3, 4, 5, 7, 0, 1 };
+            for (int i = 0; i < 8; i++)
+            {
+                int horseId = i + 1;
+                bool hasCard = false;
+                foreach (var c in revealed) if (c.HorseId == horseId) { hasCard = true; break; }
+
+                if (hasCard)
+                {
+                    int statusHorseIdx = horseIdToStatusIndex[i];
+                    var sprite = StatusImageSystem.GetStatusSprite(Cfg.horseStatus, statusHorseIdx, _gm.Round.Horses[i].HiddenBonus);
+                    if (sprite != null)
+                    {
+                        _horseStatusImages[i].sprite = sprite;
+                        _horseStatusImages[i].gameObject.SetActive(true);
+                    }
+                    else
+                    {
+                        _horseStatusImages[i].gameObject.SetActive(false);
+                    }
+                }
+                else
+                {
+                    _horseStatusImages[i].gameObject.SetActive(false);
+                }
             }
 
             _selectionText.text = _selectedHorses.Count > 0

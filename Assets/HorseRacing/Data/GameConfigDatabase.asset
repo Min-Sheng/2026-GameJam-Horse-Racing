@@ -20,3 +20,4 @@ MonoBehaviour:
   analyst: {fileID: 11400000, guid: d45cff4dc5515c345a256905fa36545b, type: 2}
   betting: {fileID: 11400000, guid: f21d5291413518b4ab05ad17611ead04, type: 2}
   shop: {fileID: 11400000, guid: a73f0a098d75bdc4982da8d26582f2ed, type: 2}
+  horseStatus: {fileID: 11400000, guid: dae8cc596249e47ed9b5f7ad3057081a, type: 2}
