@@ -384,11 +384,16 @@ namespace HorseRacing.UI
                     }
                     else
                     {
-                        float pAtStop = horseProgress[i]; // 已到最終進度
-                        float extraProgress = (elapsed / RaceDuration - 1f) * (keyframes[i][3]);
-                        float baseAtStop = basePx + (keyframes[i][3] - keyframes[result.RankToHorseId[0] - 1][3])
-                            / keyframes[result.RankToHorseId[0] - 1][3] * width * HorseSpreadX / 0.05f;
-                        float extraPx = Mathf.Max(0, elapsed - RaceDuration) * scrollSpeedPxPerSec * keyframes[i][3] / maxCumulative;
+                        // 背景停止後，每匹馬依各自最終速度比例繼續往前跑直到過終點
+                        float leaderFinal = keyframes[result.RankToHorseId[0] - 1][3];
+                        float myFinal = keyframes[i][3];
+                        // 相對偏移：此馬在背景停止瞬間相對於領先馬的位差
+                        float diffAtStop = (myFinal - leaderFinal) / Mathf.Max(leaderFinal, 0.001f)
+                            * width * HorseSpreadX / 0.05f;
+                        float baseAtStop = basePx + diffAtStop;
+                        // 額外移動：以領先馬速度為基準，讓每匹馬以相同速度往前跑
+                        float extraTime = Mathf.Max(0, elapsed - RaceDuration);
+                        float extraPx = extraTime * scrollSpeedPxPerSec;
                         x = baseAtStop + extraPx;
                     }
 
