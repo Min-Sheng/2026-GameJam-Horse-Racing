@@ -15,27 +15,27 @@ MonoBehaviour:
   bettingRounds: 3
   betTypes:
   - type: 0
-    displayName: "\u7368\u8D0F"
+    displayName: "\u55AE\u52DD"
     payoutMultiplier: 3
     selectionCount: 1
     ordered: 0
   - type: 1
-    displayName: "\u4F4D\u7F6E"
+    displayName: "\u8907\u52DD"
     payoutMultiplier: 1.5
     selectionCount: 1
     ordered: 0
   - type: 2
-    displayName: "\u9023\u8D0F"
+    displayName: "\u99AC\u9023"
     payoutMultiplier: 5
     selectionCount: 2
     ordered: 0
   - type: 3
-    displayName: "\u6B63\u9023\u8D0F"
+    displayName: "\u99AC\u55AE"
     payoutMultiplier: 8
     selectionCount: 2
     ordered: 1
   - type: 4
-    displayName: "\u4E09\u91CD\u5F69"
+    displayName: "\u4E09\u9023\u8907"
     payoutMultiplier: 15
     selectionCount: 3
     ordered: 0
