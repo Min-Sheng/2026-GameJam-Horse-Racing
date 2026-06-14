@@ -38,7 +38,8 @@ namespace HorseRacing.UI
         private long _stake = 100;
 
         // 下注面板控制項
-        private TextMeshProUGUI _bettingTitle, _selectionText, _betDescText, _stakeText, _betsSummary, _analystText;
+        private TextMeshProUGUI _bettingTitle, _selectionText, _betDescText, _betsSummary, _analystText;
+        private TMP_InputField _stakeInput;
         private readonly List<TextMeshProUGUI> _horseRowText = new List<TextMeshProUGUI>();
         private readonly List<Button> _horseRowButton = new List<Button>();
         private GameObject _analystSection;
@@ -85,22 +86,39 @@ namespace HorseRacing.UI
             scaler.matchWidthOrHeight = 1f;
 
             var root = UIFactory.Panel_(canvas.transform, "Root", UIFactory.Dark);
+            UIFactory.VLayout(root, 0, 0, TextAnchor.UpperCenter, true, false, true, false);
 
-            // 不再有 TopBar，建立隱藏的文字節點供程式更新（避免 null reference）
+            // TopBar — 顯示回合與剩餘資金
+            var topBar = UIFactory.Rect(root.transform, "TopBar", UIFactory.Panel).gameObject;
+            UIFactory.LE(topBar, prefH: 36, flexH: 0);
+            UIFactory.HLayout(topBar, 16, 8, TextAnchor.MiddleLeft, false, true, true, true);
+            _roundText = UIFactory.Text(topBar.transform, "", 22, TextAlignmentOptions.Left, UIFactory.TextMain);
+            UIFactory.LE(_roundText.gameObject, flexW: 1);
+            _moneyText = UIFactory.Text(topBar.transform, "", 22, TextAlignmentOptions.Right, UIFactory.Accent);
+            UIFactory.LE(_moneyText.gameObject, flexW: 1);
+            _cardsText = UIFactory.Text(topBar.transform, "", 22, TextAlignmentOptions.Right, UIFactory.TextDim);
+            UIFactory.LE(_cardsText.gameObject, flexW: 0.6f);
+
+            // 隱藏的輔助文字節點（避免 null reference）
             var hidden = UIFactory.NewUIObject("HiddenInfo", root.transform);
             hidden.SetActive(false);
-            _moneyText = UIFactory.Text(hidden.transform, "", 1);
-            _roundText = UIFactory.Text(hidden.transform, "", 1);
-            _cardsText = UIFactory.Text(hidden.transform, "", 1);
             _noticeText = UIFactory.Text(hidden.transform, "", 1);
             _phaseText = UIFactory.Text(hidden.transform, "", 1);
 
-            _menuPanel = BuildMenuPanel(root.transform);
-            _bettingPanel = BuildBettingPanel(root.transform);
-            _racePanel = BuildRacePanel(root.transform);
-            _resultPanel = BuildResultPanel(root.transform);
-            _shopPanel = BuildShopPanel(root.transform);
-            _gameOverPanel = BuildGameOverPanel(root.transform);
+            // Content area
+            var content = UIFactory.NewUIObject("Content", root.transform);
+            content.AddComponent<Image>().color = new Color(0, 0, 0, 0);
+            UIFactory.LE(content, flexH: 1);
+            var contentRT = content.GetComponent<RectTransform>();
+            contentRT.anchorMin = Vector2.zero; contentRT.anchorMax = Vector2.one;
+            contentRT.offsetMin = Vector2.zero; contentRT.offsetMax = Vector2.zero;
+
+            _menuPanel = BuildMenuPanel(content.transform);
+            _bettingPanel = BuildBettingPanel(content.transform);
+            _racePanel = BuildRacePanel(content.transform);
+            _resultPanel = BuildResultPanel(content.transform);
+            _shopPanel = BuildShopPanel(content.transform);
+            _gameOverPanel = BuildGameOverPanel(content.transform);
         }
 
         private GameObject BuildMenuPanel(Transform parent)
@@ -192,19 +210,67 @@ namespace HorseRacing.UI
             // 金額
             UIFactory.Text(right.transform, "下注金額", 22, TextAlignmentOptions.Left, UIFactory.TextDim);
             var stakeRow = UIFactory.NewUIObject("StakeRow", right.transform);
-            stakeRow.AddComponent<Image>().color = new Color(0, 0, 0, 0);
-            UIFactory.HLayout(stakeRow, 8, 0, TextAnchor.MiddleLeft, false, true, false, true);
-            UIFactory.LE(stakeRow, prefH: 36);
-            foreach (long preset in new long[] { 50, 100, 500 })
-            {
-                long v = preset;
-                var b = UIFactory.Button(stakeRow.transform, "+" + v, 18, () => { _stake += v; RefreshBetting(); }, UIFactory.Card);
-                UIFactory.LE(b.gameObject, prefW: 56);
-            }
-            var clr = UIFactory.Button(stakeRow.transform, "清除", 18, () => { _stake = 0; RefreshBetting(); }, UIFactory.Card);
-            UIFactory.LE(clr.gameObject, prefW: 56);
-            _stakeText = UIFactory.Text(stakeRow.transform, "0", 36, TextAlignmentOptions.Center, UIFactory.Accent);
-            UIFactory.LE(_stakeText.gameObject, flexW: 1);
+            var stakeRowImg = stakeRow.AddComponent<Image>();
+            stakeRowImg.color = new Color(0, 0, 0, 0);
+            stakeRowImg.raycastTarget = false;
+            UIFactory.HLayout(stakeRow, 4, 0, TextAnchor.MiddleCenter, false, true, false, true);
+            UIFactory.LE(stakeRow, prefH: 36, flexH: 0);
+
+            // << : -100
+            var btnMM = UIFactory.Button(stakeRow.transform, "<<", 18, () => { _stake = System.Math.Max(0, _stake - 100); SyncStakeInput(); RefreshBetting(); }, UIFactory.Card);
+            UIFactory.LE(btnMM.gameObject, prefW: 44);
+            // < : -50
+            var btnM = UIFactory.Button(stakeRow.transform, "<", 18, () => { _stake = System.Math.Max(0, _stake - 50); SyncStakeInput(); RefreshBetting(); }, UIFactory.Card);
+            UIFactory.LE(btnM.gameObject, prefW: 36);
+
+            // 輸入框
+            var inputGo = UIFactory.NewUIObject("StakeInput", stakeRow.transform);
+            var inputBg = inputGo.AddComponent<Image>();
+            inputBg.color = new Color(0.14f, 0.15f, 0.18f, 1f);
+            UIFactory.LE(inputGo, flexW: 1, prefH: 36);
+
+            // TextViewport — 限制 InputField 的觸碰區域
+            var viewport = UIFactory.NewUIObject("Viewport", inputGo.transform);
+            viewport.AddComponent<RectMask2D>();
+            var vpRT = viewport.GetComponent<RectTransform>();
+            vpRT.anchorMin = Vector2.zero; vpRT.anchorMax = Vector2.one;
+            vpRT.offsetMin = new Vector2(6, 2); vpRT.offsetMax = new Vector2(-6, -2);
+
+            var inputTextGo = UIFactory.NewUIObject("Text", viewport.transform);
+            var inputTmp = inputTextGo.AddComponent<TextMeshProUGUI>();
+            if (UIFactory.Font != null) inputTmp.font = UIFactory.Font;
+            inputTmp.fontSize = 24;
+            inputTmp.alignment = TextAlignmentOptions.Center;
+            inputTmp.color = UIFactory.Accent;
+            var inputRT = inputTextGo.GetComponent<RectTransform>();
+            inputRT.anchorMin = Vector2.zero; inputRT.anchorMax = Vector2.one;
+            inputRT.offsetMin = Vector2.zero; inputRT.offsetMax = Vector2.zero;
+            // Placeholder
+            var phGo = UIFactory.NewUIObject("Placeholder", viewport.transform);
+            var phTmp = phGo.AddComponent<TextMeshProUGUI>();
+            if (UIFactory.Font != null) phTmp.font = UIFactory.Font;
+            phTmp.fontSize = 24;
+            phTmp.alignment = TextAlignmentOptions.Center;
+            phTmp.color = UIFactory.TextDim;
+            phTmp.text = "輸入金額";
+            var phRT = phGo.GetComponent<RectTransform>();
+            phRT.anchorMin = Vector2.zero; phRT.anchorMax = Vector2.one;
+            phRT.offsetMin = Vector2.zero; phRT.offsetMax = Vector2.zero;
+
+            _stakeInput = inputGo.AddComponent<TMP_InputField>();
+            _stakeInput.textViewport = vpRT;
+            _stakeInput.textComponent = inputTmp;
+            _stakeInput.placeholder = phTmp;
+            _stakeInput.contentType = TMP_InputField.ContentType.IntegerNumber;
+            _stakeInput.text = _stake.ToString();
+            _stakeInput.onEndEdit.AddListener(OnStakeInputChanged);
+
+            // > : +50
+            var btnP = UIFactory.Button(stakeRow.transform, ">", 18, () => { _stake += 50; SyncStakeInput(); RefreshBetting(); }, UIFactory.Card);
+            UIFactory.LE(btnP.gameObject, prefW: 36);
+            // >> : +100
+            var btnPP = UIFactory.Button(stakeRow.transform, ">>", 18, () => { _stake += 100; SyncStakeInput(); RefreshBetting(); }, UIFactory.Card);
+            UIFactory.LE(btnPP.gameObject, prefW: 44);
 
             var placeBtn = UIFactory.Button(right.transform, "下注", 24, PlaceBet, UIFactory.AccentGreen);
             UIFactory.LE(placeBtn.gameObject, prefH: 52);
@@ -338,6 +404,22 @@ namespace HorseRacing.UI
             }
         }
 
+        private void OnStakeInputChanged(string value)
+        {
+            if (long.TryParse(value, out long parsed))
+                _stake = System.Math.Max(0, parsed);
+            else
+                _stake = 0;
+            SyncStakeInput();
+            RefreshBetting();
+        }
+
+        private void SyncStakeInput()
+        {
+            if (_stakeInput != null)
+                _stakeInput.text = _stake.ToString();
+        }
+
         // ====================================================================
         // 刷新
         // ====================================================================
@@ -426,7 +508,7 @@ namespace HorseRacing.UI
                 + "　已選馬：" + (_selectedHorses.Count > 0
                     ? string.Join(horseSep, _selectedHorses.ConvertAll(h => "H" + h))
                     : "（無）");
-            _stakeText.text = _stake.ToString();
+            SyncStakeInput();
 
             // 玩法按鈕高亮
             for (int i = 0; i < _betTypeButtons.Count && i < _betTypeOrder.Length; i++)
