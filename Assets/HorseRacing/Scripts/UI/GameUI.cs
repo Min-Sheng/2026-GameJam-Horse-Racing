@@ -56,6 +56,10 @@ namespace HorseRacing.UI
         private GameObject _shopCardsContainer;
         private RaceView _raceView;
 
+        // 資金不足時的控制按鈕
+        private Button _skipToRaceBtn;
+        private GameObject _brokePanel; // 無資金且無下注時顯示
+
         private void Awake()
         {
             _gm = GetComponent<GameManager>();
@@ -344,6 +348,23 @@ namespace HorseRacing.UI
 
             var placeBtn = UIFactory.Button(right.transform, "下注", 24, PlaceBet, UIFactory.AccentGreen);
             UIFactory.LE(placeBtn.gameObject, prefH: 52);
+
+            // 「直接開始比賽」按鈕（資金不足但已有下注時顯示）
+            var skipBtn = UIFactory.Button(right.transform, "直接開始比賽", 22, () => _gm.SkipToRace(), UIFactory.Accent);
+            UIFactory.LE(skipBtn.gameObject, prefH: 48);
+            _skipToRaceBtn = skipBtn;
+            _skipToRaceBtn.gameObject.SetActive(false);
+
+            // 破產面板（無資金且無下注時顯示）
+            _brokePanel = UIFactory.NewUIObject("BrokePanel", right.transform);
+            _brokePanel.AddComponent<Image>().color = new Color(0, 0, 0, 0);
+            UIFactory.HLayout(_brokePanel, 12, 0, TextAnchor.MiddleCenter, false, true, false, true);
+            UIFactory.LE(_brokePanel, prefH: 48);
+            var restartBtn = UIFactory.Button(_brokePanel.transform, "重新開始", 20, () => _gm.RestartGame(), UIFactory.Accent);
+            UIFactory.LE(restartBtn.gameObject, prefW: 160, prefH: 44);
+            var quitBtn = UIFactory.Button(_brokePanel.transform, "結束遊戲", 20, () => { Application.Quit(); }, UIFactory.AccentRed);
+            UIFactory.LE(quitBtn.gameObject, prefW: 160, prefH: 44);
+            _brokePanel.SetActive(false);
 
             _betsSummary = UIFactory.Text(right.transform, "本回合尚未下注", 18, TextAlignmentOptions.Left, UIFactory.TextDim);
             UIFactory.LE(_betsSummary.gameObject, prefH: 90, flexH: 1);
@@ -664,6 +685,14 @@ namespace HorseRacing.UI
             // 若已購買情報，在下注畫面也顯示
             if (_gm.Round.PurchasedReport != null)
                 _betsSummary.text += "\n\n分析師情報：\n" + string.Join("\n", _gm.Round.PurchasedReport.Statements);
+
+            // 資金不足時的按鈕邏輯
+            bool hasBets = _gm.Round.Bets.Count > 0;
+            bool broke = _gm.Player.Money <= 0;
+            // 「直接開始比賽」：有下注但沒資金繼續下注
+            _skipToRaceBtn.gameObject.SetActive(broke && hasBets);
+            // 「重新開始/結束遊戲」：完全沒資金也沒下注
+            _brokePanel.SetActive(broke && !hasBets);
         }
 
         private void RefreshResult()
