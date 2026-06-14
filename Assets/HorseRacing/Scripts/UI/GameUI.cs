@@ -42,6 +42,7 @@ namespace HorseRacing.UI
         private readonly List<TextMeshProUGUI> _horseRowText = new List<TextMeshProUGUI>();
         private readonly List<Button> _horseRowButton = new List<Button>();
         private GameObject _analystSection;
+        private readonly List<Button> _betTypeButtons = new List<Button>();
 
         // 結果/商店/賽道
         private TextMeshProUGUI _resultText, _shopHeldText, _gameOverText;
@@ -175,7 +176,8 @@ namespace HorseRacing.UI
             {
                 var entry = Cfg.betting.Get(bt);
                 string label = entry != null ? $"{entry.displayName} x{entry.payoutMultiplier}" : bt.ToString();
-                UIFactory.Button(betTypesWrap.transform, label, 16, () => SelectBetType(bt), UIFactory.Card);
+                var btBtn = UIFactory.Button(betTypesWrap.transform, label, 16, () => SelectBetType(bt), UIFactory.Card);
+                _betTypeButtons.Add(btBtn);
             }
 
             _selectionText = UIFactory.Text(right.transform, "已選馬：（無）", 20, TextAlignmentOptions.Left, UIFactory.TextMain);
@@ -389,10 +391,19 @@ namespace HorseRacing.UI
                 _horseRowText[i].color = _betTypeChosen ? UIFactory.TextMain : UIFactory.TextDim;
             }
 
-            _selectionText.text = _selectedHorses.Count > 0
-                ? "已選馬：" + string.Join(" → ", _selectedHorses.ConvertAll(h => "H" + h))
-                : "已選馬：（無）　玩法：" + (Cfg.betting.Get(_selectedBetType)?.displayName ?? "");
+            _selectionText.text = "玩法：" + (_betTypeChosen ? Cfg.betting.Get(_selectedBetType)?.displayName ?? "" : "（未選）")
+                + "　已選馬：" + (_selectedHorses.Count > 0
+                    ? string.Join(" → ", _selectedHorses.ConvertAll(h => "H" + h))
+                    : "（無）");
             _stakeText.text = _stake.ToString();
+
+            // 玩法按鈕高亮
+            var betTypes = (BetType[])System.Enum.GetValues(typeof(BetType));
+            for (int i = 0; i < _betTypeButtons.Count && i < betTypes.Length; i++)
+            {
+                var btnImg = _betTypeButtons[i].GetComponent<Image>();
+                btnImg.color = (_betTypeChosen && betTypes[i] == _selectedBetType) ? UIFactory.AccentGreen : UIFactory.Card;
+            }
 
             // 下注摘要
             var sb = new StringBuilder("本回合下注：");
