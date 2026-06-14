@@ -17,10 +17,12 @@ namespace HorseRacing.UI
         public TMP_FontAsset chineseFont;
 
         [Header("美術素材")]
-        public Sprite horseSprite;
         public Sprite trackGrass;
         public Sprite trackMud;
         public Sprite trackSnow;
+
+        [Header("角色 Sprite 配置")]
+        public HorseSpriteConfig horseSpriteConfig;
 
         private GameManager _gm;
         private GameConfigDatabase Cfg => _gm.config;
@@ -53,6 +55,49 @@ namespace HorseRacing.UI
         {
             _gm = GetComponent<GameManager>();
             UIFactory.Font = chineseFont;
+
+            // Auto-load HorseSpriteConfig: try Resources, then create at runtime from sprite sheets
+            if (horseSpriteConfig == null)
+            {
+                horseSpriteConfig = Resources.Load<HorseSpriteConfig>("HorseSpriteConfig");
+            }
+            if (horseSpriteConfig == null)
+            {
+                horseSpriteConfig = CreateRuntimeSpriteConfig();
+            }
+        }
+
+        /// <summary>
+        /// Creates a HorseSpriteConfig at runtime by loading sprites from Resources/Horses/ folder.
+        /// Sprite sheet PNGs must be in Assets/HorseRacing/Resources/Horses/ with spriteMode=Multiple.
+        /// Falls back to loading from Art/Horses/ path patterns if available.
+        /// </summary>
+        private HorseSpriteConfig CreateRuntimeSpriteConfig()
+        {
+            var config = ScriptableObject.CreateInstance<HorseSpriteConfig>();
+            // Horse order: 1.horse_ 2.spongebob 3.cat 4.grandma 5.goldfish 6.tardis 7.thief 8.tombstone
+            string[] spriteNames = { "horse_", "spongebob", "cat", "grandma", "goldfish", "tardis", "thief", "tombstone" };
+
+            for (int i = 0; i < 8; i++)
+            {
+                var sprites = Resources.LoadAll<Sprite>("Horses/" + spriteNames[i]);
+                if (sprites != null && sprites.Length > 0)
+                {
+                    config.entries[i].frames = sprites;
+                }
+            }
+
+            // Default frames = horse_ sprites
+            var defaultSprites = Resources.LoadAll<Sprite>("Horses/horse_");
+            if (defaultSprites != null && defaultSprites.Length > 0)
+                config.defaultFrames = defaultSprites;
+            else if (config.entries[0].frames != null)
+                config.defaultFrames = config.entries[0].frames;
+
+            if (config.defaultFrames == null || config.defaultFrames.Length == 0)
+                Debug.LogWarning("[GameUI] Could not load horse sprites from Resources/Horses/. Icons will not display.");
+
+            return config;
         }
 
         private void Start()
@@ -149,8 +194,21 @@ namespace HorseRacing.UI
                 btn.onClick.AddListener(() => ToggleHorse(horseId));
                 UIFactory.HLayout(row, 10, 10, TextAnchor.MiddleLeft, false, true, false, true);
 
-                var chip = UIFactory.Rect(row.transform, "Chip", UIFactory.HorseColors[i]).gameObject;
-                UIFactory.LE(chip, prefW: 28, minH: 28, prefH: 28, flexW: 0);
+                // Horse icon: use sprite from HorseSpriteConfig
+                var chipGo = UIFactory.NewUIObject("HorseIcon", row.transform);
+                var chipImg = chipGo.AddComponent<Image>();
+                chipImg.preserveAspect = true;
+                if (horseSpriteConfig != null)
+                {
+                    var sprites = horseSpriteConfig.GetSprites(horseId);
+                    if (sprites != null && sprites.Length > 0 && sprites[0] != null)
+                        chipImg.sprite = sprites[0];
+                }
+                else
+                {
+                    Debug.LogError("[GameUI] horseSpriteConfig is null. No icon available.");
+                }
+                UIFactory.LE(chipGo, prefW: 52, minH: 52, prefH: 52, flexW: 0);
 
                 var txt = UIFactory.Text(row.transform, "", 20, TextAlignmentOptions.Left);
                 txt.raycastTarget = false;
@@ -239,7 +297,7 @@ namespace HorseRacing.UI
             UIFactory.LE(field, flexH: 1);
 
             _raceView = field.AddComponent<RaceView>();
-            _raceView.Init(this, horseSprite, trackGrass, trackMud, trackSnow);
+            _raceView.Init(this, trackGrass, trackMud, trackSnow, horseSpriteConfig);
 
             return p;
         }
