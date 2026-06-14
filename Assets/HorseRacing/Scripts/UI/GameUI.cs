@@ -42,8 +42,6 @@ namespace HorseRacing.UI
         private readonly List<TextMeshProUGUI> _horseRowText = new List<TextMeshProUGUI>();
         private readonly List<Button> _horseRowButton = new List<Button>();
         private GameObject _analystSection;
-        private Button _confirmButton;
-        private TextMeshProUGUI _confirmLabel;
 
         // 結果/商店/賽道
         private TextMeshProUGUI _resultText, _shopHeldText, _gameOverText;
@@ -206,11 +204,6 @@ namespace HorseRacing.UI
             _betsSummary = UIFactory.Text(right.transform, "本回合尚未下注", 18, TextAlignmentOptions.Left, UIFactory.TextDim);
             UIFactory.LE(_betsSummary.gameObject, prefH: 90, flexH: 1);
 
-            // 確認按鈕放在分析師上方，確保永遠可見
-            _confirmButton = UIFactory.Button(right.transform, "確認，進入下一輪", 24, () => _gm.ConfirmBettingRound(), UIFactory.Accent);
-            UIFactory.LE(_confirmButton.gameObject, prefH: 56);
-            _confirmLabel = _confirmButton.GetComponentInChildren<TextMeshProUGUI>();
-
             // 分析師（僅最後一輪顯示）
             _analystSection = UIFactory.NewUIObject("Analyst", right.transform);
             _analystSection.AddComponent<Image>().color = new Color(0, 0, 0, 0);
@@ -333,6 +326,7 @@ namespace HorseRacing.UI
             {
                 _selectedHorses.Clear();
                 _betTypeChosen = false;
+                _gm.ConfirmBettingRound();
             }
         }
 
@@ -413,9 +407,6 @@ namespace HorseRacing.UI
                 _analystText.text = "分析師情報：\n" + string.Join("\n", _gm.Round.PurchasedReport.Statements);
             else
                 _analystText.text = _gm.IsLastBettingRound ? "（可購買分析師情報）" : "";
-
-            _confirmLabel.text = _gm.IsLastBettingRound ? "開賽！" : "確認，進入下一輪";
-            _confirmButton.image.color = _gm.IsLastBettingRound ? UIFactory.AccentRed : UIFactory.Accent;
         }
 
         private void RefreshResult()
