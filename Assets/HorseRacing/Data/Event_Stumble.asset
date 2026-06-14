@@ -15,6 +15,6 @@ MonoBehaviour:
   eventName: Stumble
   displayName: "\u8E09\u8E4C"
   description: "\u99AC\u5339\u8E09\u8E4C\u5931\u901F"
-  triggerChance: 0.1
+  triggerChance: 0.25
   speedModifier: -3
   target: 0

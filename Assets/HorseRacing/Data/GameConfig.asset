@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: GameConfig
   m_EditorClassIdentifier: HorseRacing.Core::HorseRacing.GameConfig
   horseCount: 8
-  baseSpeed: 30
+  baseSpeed: 100
   hiddenBonusPool: 0000000001000000020000000300000004000000050000000600000007000000
   startingMoney: 3000
   minBetAmount: 50

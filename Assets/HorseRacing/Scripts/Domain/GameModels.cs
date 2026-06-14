@@ -76,6 +76,12 @@ namespace HorseRacing
         /// <summary>名次 → 馬號（rank 1..N），rankToHorse[0] = 第一名馬號。</summary>
         public int[] RankToHorseId;
 
+        /// <summary>
+        /// 每階段結束時的累積位移。StagePositions[stage][horseIndex] (stage 0..2, horseIndex 0..7)。
+        /// 用於動畫呈現分段超越。
+        /// </summary>
+        public float[][] StagePositions;
+
         public int GetRankOfHorse(int horseId)
         {
             foreach (var s in Standings) if (s.HorseId == horseId) return s.Rank;

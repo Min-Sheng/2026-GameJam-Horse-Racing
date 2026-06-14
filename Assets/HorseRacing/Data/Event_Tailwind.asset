@@ -15,6 +15,6 @@ MonoBehaviour:
   eventName: Tailwind
   displayName: "\u9806\u98A8"
   description: "\u9806\u98A8\u52A9\u8DD1\uFF0C\u901F\u5EA6\u63D0\u5347"
-  triggerChance: 0.2
-  speedModifier: 1
+  triggerChance: 0.35
+  speedModifier: 2
   target: 0
