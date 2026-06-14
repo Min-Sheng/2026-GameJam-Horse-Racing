@@ -110,7 +110,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: horse__0
+      name: horse_0
       rect:
         serializedVersion: 2
         x: 15
@@ -125,14 +125,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: bdc632d151e3b3140a846922b248b7de
-      internalID: 191569425
+      spriteID: 4c47461878ca4fe4ba2e04b416d2d53d
+      internalID: -2059121491
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: horse__1
+      name: horse_1
       rect:
         serializedVersion: 2
         x: 594
@@ -147,14 +147,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: b6fd837498e0c544c82d3cad3ce3dc2d
-      internalID: -899493895
+      spriteID: eb6359be921778e49b2f29895844b5b1
+      internalID: -1487376969
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: horse__2
+      name: horse_2
       rect:
         serializedVersion: 2
         x: 1120
@@ -169,14 +169,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 29c8c9cae2759dc41ba66567eb2631cd
-      internalID: 468145983
+      spriteID: 532b9115a69cc314e88e3699eca21946
+      internalID: -700976109
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: horse__3
+      name: horse_3
       rect:
         serializedVersion: 2
         x: 1692
@@ -191,8 +191,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 3f1186a41d1153f47a1c8eccfc36035b
-      internalID: -405858662
+      spriteID: 9bbf179854a572d44b2baae61820fdbc
+      internalID: 639062021
       vertices: []
       indices: 
       edges: []
@@ -211,12 +211,12 @@ TextureImporter:
     spriteCustomMetadata:
       entries:
       - key: SpriteEditor.SliceSettings
-        value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":64.0,"y":64.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":2,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":0,"keepEmptyRects":false,"isAlternate":false}'
+        value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":64.0,"y":64.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":0,"keepEmptyRects":false,"isAlternate":false}'
     nameFileIdTable:
-      horse__0: 191569425
-      horse__1: -899493895
-      horse__2: 468145983
-      horse__3: -405858662
+      horse_0: -2059121491
+      horse_1: -1487376969
+      horse_2: -700976109
+      horse_3: 639062021
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: a531743032225df4d8def45e95ba152d
+guid: 142c648c054008a408aa1629d9ba213a
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -113,10 +113,10 @@ TextureImporter:
       name: tombstone_0
       rect:
         serializedVersion: 2
-        x: 59
-        y: 410
-        width: 307
-        height: 326
+        x: 16
+        y: 379
+        width: 364
+        height: 354
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -125,8 +125,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 3d18b553fdf0fbd498bfead65f369883
-      internalID: 1571053112
+      spriteID: 861f7046050353a449db88b4037b2fde
+      internalID: 2084237196
       vertices: []
       indices: 
       edges: []
@@ -135,10 +135,10 @@ TextureImporter:
       name: tombstone_1
       rect:
         serializedVersion: 2
-        x: 431
-        y: 445
-        width: 319
-        height: 311
+        x: 447
+        y: 402
+        width: 307
+        height: 365
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -147,8 +147,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 74cdd088916f18b4b88f3f157e78b9c0
-      internalID: -977486790
+      spriteID: 5223e4af402f71c4abd1875e2ed21466
+      internalID: 114683965
       vertices: []
       indices: 
       edges: []
@@ -157,10 +157,10 @@ TextureImporter:
       name: tombstone_2
       rect:
         serializedVersion: 2
-        x: 818
-        y: 395
-        width: 307
-        height: 330
+        x: 755
+        y: 376
+        width: 386
+        height: 349
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -169,8 +169,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 854dde6fc60134045b434817532873f1
-      internalID: -1659369656
+      spriteID: f16c5cd943528ba47b76e73fc88ae8ce
+      internalID: 1452744912
       vertices: []
       indices: 
       edges: []
@@ -179,10 +179,10 @@ TextureImporter:
       name: tombstone_3
       rect:
         serializedVersion: 2
-        x: 1197
-        y: 407
-        width: 297
-        height: 321
+        x: 1191
+        y: 379
+        width: 315
+        height: 348
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -191,8 +191,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: c760868f84544c6488dceda630cc771d
-      internalID: -1438705777
+      spriteID: a1cc78a7cf23c534e9aafb443485d352
+      internalID: 1242760427
       vertices: []
       indices: 
       edges: []
@@ -201,7 +201,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: ec5396433c356214b8cdccf4b1acb9e8
+    spriteID: 79b0c0bb261290648aa862ae6815ff96
     internalID: 0
     vertices: []
     indices: 
@@ -211,12 +211,12 @@ TextureImporter:
     spriteCustomMetadata:
       entries:
       - key: SpriteEditor.SliceSettings
-        value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":64.0,"y":64.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":2,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":0,"keepEmptyRects":false,"isAlternate":false}'
+        value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":64.0,"y":64.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":0,"keepEmptyRects":false,"isAlternate":false}'
     nameFileIdTable:
-      tombstone_0: 1571053112
-      tombstone_1: -977486790
-      tombstone_2: -1659369656
-      tombstone_3: -1438705777
+      tombstone_0: 2084237196
+      tombstone_1: 114683965
+      tombstone_2: 1452744912
+      tombstone_3: 1242760427
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
