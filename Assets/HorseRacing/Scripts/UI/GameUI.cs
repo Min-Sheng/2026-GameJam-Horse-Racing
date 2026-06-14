@@ -26,7 +26,7 @@ namespace HorseRacing.UI
         private GameConfigDatabase Cfg => _gm.config;
 
         // 面板
-        private GameObject _menuPanel, _bettingPanel, _racePanel, _resultPanel, _shopPanel, _gameOverPanel;
+        private GameObject _menuPanel, _bettingPanel, _racePanel, _resultPanel, _shopPanel, _gameOverPanel, _analystPanel;
 
         // 頂列
         private TextMeshProUGUI _moneyText, _roundText, _cardsText, _phaseText, _noticeText;
@@ -42,7 +42,6 @@ namespace HorseRacing.UI
         private TMP_InputField _stakeInput;
         private readonly List<TextMeshProUGUI> _horseRowText = new List<TextMeshProUGUI>();
         private readonly List<Button> _horseRowButton = new List<Button>();
-        private GameObject _analystSection;
         private readonly List<Button> _betTypeButtons = new List<Button>();
         private BetType[] _betTypeOrder;
 
@@ -115,6 +114,7 @@ namespace HorseRacing.UI
 
             _menuPanel = BuildMenuPanel(content.transform);
             _bettingPanel = BuildBettingPanel(content.transform);
+            _analystPanel = BuildAnalystPanel(content.transform);
             _racePanel = BuildRacePanel(content.transform);
             _resultPanel = BuildResultPanel(content.transform);
             _shopPanel = BuildShopPanel(content.transform);
@@ -278,21 +278,48 @@ namespace HorseRacing.UI
             _betsSummary = UIFactory.Text(right.transform, "本回合尚未下注", 18, TextAlignmentOptions.Left, UIFactory.TextDim);
             UIFactory.LE(_betsSummary.gameObject, prefH: 90, flexH: 1);
 
-            // 分析師（僅最後一輪顯示）
-            _analystSection = UIFactory.NewUIObject("Analyst", right.transform);
-            _analystSection.AddComponent<Image>().color = new Color(0, 0, 0, 0);
-            UIFactory.VLayout(_analystSection, 4, 0, TextAnchor.UpperCenter, true, false, true, false);
-            UIFactory.LE(_analystSection, prefH: 110);
-            var anRow = UIFactory.NewUIObject("AnRow", _analystSection.transform);
-            anRow.AddComponent<Image>().color = new Color(0, 0, 0, 0);
-            UIFactory.HLayout(anRow, 8, 0, TextAnchor.MiddleLeft, false, true, true, true);
-            UIFactory.LE(anRow, prefH: 40);
-            UIFactory.Button(anRow.transform, $"初級情報 ${Cfg.analyst.juniorPrice}", 16, () => _gm.BuyAnalystReport(AnalystTier.Junior), UIFactory.Accent);
-            UIFactory.Button(anRow.transform, $"資深情報 ${Cfg.analyst.seniorPrice}", 16, () => _gm.BuyAnalystReport(AnalystTier.Senior), UIFactory.Accent);
-            _analystText = UIFactory.Text(_analystSection.transform, "", 16, TextAlignmentOptions.Left, UIFactory.TextMain);
-            UIFactory.LE(_analystText.gameObject, prefH: 62);
+            return p;
+        }
+
+        // ---------------- Analyst (獨立畫面) ----------------
+        private GameObject BuildAnalystPanel(Transform parent)
+        {
+            var p = UIFactory.Panel_(parent, "AnalystPanel", new Color(0, 0, 0, 0));
+            UIFactory.VLayout(p, 20, 40, TextAnchor.MiddleCenter, true, false, false, false);
+
+            UIFactory.Text(p.transform, "購買分析師情報", 36, TextAlignmentOptions.Center, UIFactory.Accent);
+            var desc = UIFactory.Text(p.transform, "在最後一輪下注前，可購買情報來輔助決策", 22, TextAlignmentOptions.Center, UIFactory.TextDim);
+            UIFactory.LE(desc.gameObject, prefH: 40);
+
+            var btnRow = UIFactory.NewUIObject("BtnRow", p.transform);
+            btnRow.AddComponent<Image>().color = new Color(0, 0, 0, 0);
+            UIFactory.HLayout(btnRow, 16, 0, TextAnchor.MiddleCenter, false, true, false, false);
+            UIFactory.LE(btnRow, prefH: 60);
+            var jBtn = UIFactory.Button(btnRow.transform, $"初級情報 ${Cfg.analyst.juniorPrice}", 22, () => { _gm.BuyAnalystReport(AnalystTier.Junior); RefreshAnalystPanel(); }, UIFactory.Accent);
+            UIFactory.LE(jBtn.gameObject, prefW: 260, prefH: 56);
+            var sBtn = UIFactory.Button(btnRow.transform, $"資深情報 ${Cfg.analyst.seniorPrice}", 22, () => { _gm.BuyAnalystReport(AnalystTier.Senior); RefreshAnalystPanel(); }, UIFactory.Accent);
+            UIFactory.LE(sBtn.gameObject, prefW: 260, prefH: 56);
+
+            _analystText = UIFactory.Text(p.transform, "", 20, TextAlignmentOptions.Center, UIFactory.TextMain);
+            UIFactory.LE(_analystText.gameObject, prefH: 80, prefW: 800);
+
+            var skipBtn = UIFactory.Button(p.transform, "進入最後一輪下注", 24, OnAnalystDone, UIFactory.AccentGreen);
+            UIFactory.LE(skipBtn.gameObject, prefW: 320, prefH: 56);
 
             return p;
+        }
+
+        private void RefreshAnalystPanel()
+        {
+            if (_gm.Round != null && _gm.Round.PurchasedReport != null)
+                _analystText.text = "分析師情報：\n" + string.Join("\n", _gm.Round.PurchasedReport.Statements);
+        }
+
+        private void OnAnalystDone()
+        {
+            _analystPanel.SetActive(false);
+            _bettingPanel.SetActive(true);
+            RefreshBetting();
         }
 
         // ---------------- Race ----------------
@@ -400,7 +427,16 @@ namespace HorseRacing.UI
             {
                 _selectedHorses.Clear();
                 _betTypeChosen = false;
+                // 若即將進入最後一輪，先顯示分析師畫面
+                bool willBeLastRound = _gm.Round != null &&
+                    _gm.Round.CurrentBettingRound == _gm.BettingRounds - 2;
                 _gm.ConfirmBettingRound();
+                if (willBeLastRound && _gm.Phase == GamePhase.Betting)
+                {
+                    _bettingPanel.SetActive(false);
+                    _analystPanel.SetActive(true);
+                    _analystText.text = "（可購買情報，或直接進入最後一輪下注）";
+                }
             }
         }
 
@@ -443,6 +479,7 @@ namespace HorseRacing.UI
 
             _menuPanel.SetActive(_gm.Phase == GamePhase.MainMenu);
             _bettingPanel.SetActive(_gm.Phase == GamePhase.Betting);
+            _analystPanel.SetActive(false);
             _racePanel.SetActive(_gm.Phase == GamePhase.Racing);
             _resultPanel.SetActive(_gm.Phase == GamePhase.Settlement);
             _shopPanel.SetActive(_gm.Phase == GamePhase.Shop);
@@ -524,12 +561,9 @@ namespace HorseRacing.UI
                 sb.Append($"\n· {Cfg.betting.Get(b.Type)?.displayName} {string.Join(",", System.Array.ConvertAll(b.HorseIds, x => "H" + x))} ${b.Amount} (x{b.PayoutMultiplier:0.00})");
             _betsSummary.text = sb.ToString();
 
-            // 分析師（僅最後一輪）
-            _analystSection.SetActive(_gm.IsLastBettingRound);
+            // 若已購買情報，在下注畫面也顯示
             if (_gm.Round.PurchasedReport != null)
-                _analystText.text = "分析師情報：\n" + string.Join("\n", _gm.Round.PurchasedReport.Statements);
-            else
-                _analystText.text = _gm.IsLastBettingRound ? "（可購買分析師情報）" : "";
+                _betsSummary.text += "\n\n分析師情報：\n" + string.Join("\n", _gm.Round.PurchasedReport.Statements);
         }
 
         private void RefreshResult()
