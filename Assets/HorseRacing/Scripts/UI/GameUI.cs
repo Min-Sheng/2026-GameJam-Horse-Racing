@@ -33,6 +33,7 @@ namespace HorseRacing.UI
 
         // 下注狀態
         private BetType _selectedBetType = BetType.Win;
+        private bool _betTypeChosen = false;
         private readonly List<int> _selectedHorses = new List<int>();
         private long _stake = 100;
 
@@ -187,23 +188,23 @@ namespace HorseRacing.UI
             var stakeRow = UIFactory.NewUIObject("StakeRow", right.transform);
             stakeRow.AddComponent<Image>().color = new Color(0, 0, 0, 0);
             UIFactory.HLayout(stakeRow, 8, 0, TextAnchor.MiddleLeft, false, true, false, true);
-            UIFactory.LE(stakeRow, prefH: 44);
+            UIFactory.LE(stakeRow, prefH: 36);
             foreach (long preset in new long[] { 50, 100, 500 })
             {
                 long v = preset;
                 var b = UIFactory.Button(stakeRow.transform, "+" + v, 18, () => { _stake += v; RefreshBetting(); }, UIFactory.Card);
-                UIFactory.LE(b.gameObject, prefW: 80);
+                UIFactory.LE(b.gameObject, prefW: 56);
             }
             var clr = UIFactory.Button(stakeRow.transform, "清除", 18, () => { _stake = 0; RefreshBetting(); }, UIFactory.Card);
-            UIFactory.LE(clr.gameObject, prefW: 80);
-            _stakeText = UIFactory.Text(stakeRow.transform, "0", 26, TextAlignmentOptions.Center, UIFactory.Accent);
+            UIFactory.LE(clr.gameObject, prefW: 56);
+            _stakeText = UIFactory.Text(stakeRow.transform, "0", 36, TextAlignmentOptions.Center, UIFactory.Accent);
             UIFactory.LE(_stakeText.gameObject, flexW: 1);
 
             var placeBtn = UIFactory.Button(right.transform, "下注", 24, PlaceBet, UIFactory.AccentGreen);
             UIFactory.LE(placeBtn.gameObject, prefH: 52);
 
             _betsSummary = UIFactory.Text(right.transform, "本回合尚未下注", 18, TextAlignmentOptions.Left, UIFactory.TextDim);
-            UIFactory.LE(_betsSummary.gameObject, prefH: 52);
+            UIFactory.LE(_betsSummary.gameObject, prefH: 90, flexH: 1);
 
             // 確認按鈕放在分析師上方，確保永遠可見
             _confirmButton = UIFactory.Button(right.transform, "確認，進入下一輪", 24, () => _gm.ConfirmBettingRound(), UIFactory.Accent);
@@ -304,6 +305,7 @@ namespace HorseRacing.UI
         private void SelectBetType(BetType bt)
         {
             _selectedBetType = bt;
+            _betTypeChosen = true;
             _selectedHorses.Clear();
             RefreshBetting();
         }
@@ -311,6 +313,7 @@ namespace HorseRacing.UI
         private void ToggleHorse(int horseId)
         {
             if (_gm.Phase != GamePhase.Betting) return;
+            if (!_betTypeChosen) return;
             int need = Cfg.betting.Get(_selectedBetType)?.selectionCount ?? 1;
             if (_selectedHorses.Contains(horseId)) _selectedHorses.Remove(horseId);
             else
@@ -329,6 +332,7 @@ namespace HorseRacing.UI
             if (_gm.PlaceBet(_selectedBetType, _stake, _selectedHorses.ToArray()))
             {
                 _selectedHorses.Clear();
+                _betTypeChosen = false;
             }
         }
 
@@ -387,6 +391,8 @@ namespace HorseRacing.UI
                 _horseRowText[i].text = $"{sel}Horse {horseId}　賠率 {(odds != null ? odds.WinOdds.ToString("0.00") : "-")}{card}";
                 var img = _horseRowButton[i].GetComponent<Image>();
                 img.color = _selectedHorses.Contains(horseId) ? UIFactory.AccentGreen : UIFactory.Card;
+                _horseRowButton[i].interactable = _betTypeChosen;
+                _horseRowText[i].color = _betTypeChosen ? UIFactory.TextMain : UIFactory.TextDim;
             }
 
             _selectionText.text = _selectedHorses.Count > 0

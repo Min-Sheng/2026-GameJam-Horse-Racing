@@ -1,0 +1,7 @@
+﻿<Solution>
+  <Project Path="HorseRacing.Core.csproj" />
+  <Project Path="HorseRacing.Tests.csproj" />
+  <Project Path="HorseRacing.UI.csproj" />
+  <Project Path="Assembly-CSharp-Editor.csproj" />
+  <Project Path="Assembly-CSharp.csproj" />
+</Solution>
