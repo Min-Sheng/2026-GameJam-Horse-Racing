@@ -341,7 +341,6 @@ namespace HorseRacing.UI
                 for (int i = 0; i < 8; i++)
                 {
                     float p = elapsed * horseRate[i]; // 不 clamp，可超過 1.0
-                    currentProgress[i] = p;
                     float x;
 
                     if (!bgStopped)
@@ -367,6 +366,10 @@ namespace HorseRacing.UI
                         float extraPx = extraProgress * (scrollSpeedPxPerSec / leaderRate);
                         x = baseAtStop + extraPx;
                     }
+
+                    // 小地圖進度：基於馬匹在整條背景上的絕對位置（clamp 前）
+                    float horseAbsX = x + scrollX;
+                    currentProgress[i] = Mathf.Clamp01(horseAbsX / finishLineLocalX);
 
                     x = Mathf.Clamp(x, horseW * -0.5f, width + horseW);
 

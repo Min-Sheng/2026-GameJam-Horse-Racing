@@ -7,8 +7,8 @@ namespace HorseRacing
     public class RaceAnimConfig : ScriptableObject
     {
         [Header("Minimap")]
-        [Tooltip("佔畫面寬度比例")] public float minimapWidthPercent = 0.25f;
-        [Tooltip("佔畫面高度比例")] public float minimapHeightPercent = 0.18f;
+        [Tooltip("佔畫面寬度比例")] public float minimapWidthPercent = 0.30f;
+        [Tooltip("佔畫面高度比例")] public float minimapHeightPercent = 0.28f;
         [Tooltip("與畫面邊緣間距")] public float minimapMarginPx = 10f;
         [Tooltip("背景不透明度 (0.5~0.7)")] public float minimapBgAlpha = 0.6f;
 

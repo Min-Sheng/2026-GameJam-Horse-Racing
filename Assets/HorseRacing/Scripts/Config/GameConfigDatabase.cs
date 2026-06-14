@@ -16,5 +16,6 @@ namespace HorseRacing
         public AnalystConfig analyst;
         public BettingConfig betting;
         public ShopConfig shop;
+        public RaceAnimConfig raceAnim;
     }
 }
